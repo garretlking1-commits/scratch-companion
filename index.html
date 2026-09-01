@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scratch Companion</title>
+<meta name="description" content="Phone companion for the Scratch watch app — scan workout QR exports, chart trends, sync to the vault.">
+<meta name="theme-color" content="#0b0f14">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scratch">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --ground: #0b0f14;
+    --panel: #141b24;
+    --panel-2: #10161e;
+    --line: #243140;
+    --text: #e9eef5;
+    --muted: #8d97a6;
+    --gold: #f2b63c;
+    --blue: #64b5f6;
+    --green: #4caf50;
+    --amber: #ffc107;
+    --red: #ef5350;
+    --disp: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+    --mono: "IBM Plex Mono", "Courier New", monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--ground); }
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+    padding: env(safe-area-inset-top) 14px 60px;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; }
+
+  header { padding: 26px 2px 6px; display: flex; align-items: baseline; justify-content: space-between; }
+  .wordmark {
+    font-family: var(--disp); font-weight: 700; font-size: 34px;
+    letter-spacing: 4px; text-transform: uppercase; color: var(--gold);
+    line-height: 1;
+  }
+  .wordmark span { color: var(--text); font-weight: 500; }
+  .weekchip {
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tagline { color: var(--muted); font-size: 14px; margin: 0 2px 20px; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+  }
+  .card h2 {
+    font-family: var(--disp); font-weight: 600; font-size: 18px;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 12px;
+  }
+  .card h2 b { color: var(--text); font-weight: 600; }
+
+  textarea, input[type="password"], input[type="text"] {
+    width: 100%; resize: vertical;
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px;
+    font-family: var(--mono); font-size: 13px; padding: 10px;
+    line-height: 1.5;
+  }
+  textarea { min-height: 92px; }
+  textarea:focus, input:focus, button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--gold); outline-offset: 1px;
+  }
+  textarea::placeholder, input::placeholder { color: #55606e; }
+
+  .btnrow { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  button {
+    font-family: var(--disp); font-weight: 600; font-size: 16px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer;
+    color: #0b0f14; background: var(--gold);
+  }
+  button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  button:disabled { opacity: 0.4; cursor: default; }
+
+  .msg { font-size: 14px; margin-top: 10px; }
+  .msg.ok { color: var(--green); }
+  .msg.warn { color: var(--amber); }
+  .msg.err { color: var(--red); }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+  .hint a { color: var(--blue); }
+
+  .daygroup { margin-bottom: 14px; }
+  .daylabel {
+    font-family: var(--disp); font-size: 15px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--blue);
+    border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 6px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .daylabel .slp { font-family: var(--mono); font-size: 12px; letter-spacing: 0; text-transform: none; }
+  .exrow {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 5px 0; gap: 10px;
+  }
+  .exname { font-size: 15px; }
+  .exdata {
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .exdata .load { color: var(--gold); }
+  .exdata .up { color: var(--red); }
+  .exdata .dn { color: var(--green); }
+  .painpill {
+    font-family: var(--mono); font-size: 11px; border-radius: 3px;
+    padding: 1px 5px; margin-left: 6px;
+    background: #3a1416; color: var(--red);
+  }
+
+  select {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px;
+    font-family: var(--body); font-size: 15px; padding: 8px 10px;
+    width: 100%; margin-bottom: 12px;
+  }
+  .chartbox { overflow-x: auto; }
+  svg { display: block; }
+  .statline {
+    display: flex; gap: 18px; margin-top: 10px; flex-wrap: wrap;
+    font-family: var(--mono); font-size: 13px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .statline b { color: var(--text); font-weight: 500; }
+
+  .noteitem {
+    border-left: 3px solid var(--gold); padding: 4px 0 4px 12px;
+    margin-bottom: 10px;
+  }
+  .notetime { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .notetext { font-size: 15px; white-space: pre-wrap; }
+  .notedone { border-left-color: var(--line); opacity: 0.55; }
+
+  .savestate {
+    text-align: center; font-size: 13px; color: var(--muted); margin-top: 24px;
+  }
+  .savestate .dot.g { color: var(--green); }
+  .savestate .dot.a { color: var(--amber); }
+  .savestate .dot.r { color: var(--red); }
+  .empty { color: var(--muted); font-size: 14px; }
+  details.help { margin-bottom: 10px; }
+  details.help summary { color: var(--blue); font-size: 14px; cursor: pointer; }
+  details.help p { color: var(--muted); font-size: 14px; margin: 8px 0 0; }
+  #cambox { margin-bottom: 12px; }
+  #camvideo {
+    width: 100%; display: block; background: #000;
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="wordmark">Scratch <span>HQ</span></div>
+    <div class="weekchip" id="weekchip">Wk —</div>
+  </header>
+  <p class="tagline">Comeback log — data off the watch, trends on the phone, straight into the vault.</p>
+
+  <section class="card">
+    <h2><b>Import</b> from watch QR</h2>
+    <details class="help">
+      <summary>How to get the data here</summary>
+      <p>On the watch: home screen &rarr; <b>Data QR</b>. Tap <b>Scan with camera</b> below and point the phone at the watch — it grabs every page as you tap NEXT. Backup: scan with your camera app, copy the text, paste it below.</p>
+    </details>
+    <div id="cambox" hidden>
+      <video id="camvideo" playsinline muted></video>
+      <div class="msg warn" id="cammsg">Point the camera at the watch QR</div>
+      <div class="btnrow"><button id="camdone" class="ghost">Done scanning</button></div>
+    </div>
+    <textarea id="pastebox" placeholder="SCRATCH1|p1/1|0831,leg-press,4,180,132,6,0,74,410;0831,SLEEP,74,432,96"></textarea>
+    <div class="btnrow">
+      <button id="camerabtn">Scan with camera</button>
+      <button id="parsebtn" class="ghost">Read paste</button>
+      <button id="savebtn" hidden>Save 0 new</button>
+    </div>
+    <div class="msg" id="parsemsg" hidden></div>
+  </section>
+
+  <section class="card">
+    <h2><b>Log</b> — recent sessions</h2>
+    <div id="logview"><p class="empty">Nothing yet. Scan your first QR export above.</p></div>
+  </section>
+
+  <section class="card">
+    <h2><b>Trends</b> — load over time</h2>
+    <select id="exselect" hidden></select>
+    <div class="chartbox" id="loadchart"></div>
+    <div class="statline" id="loadstats"></div>
+    <p class="empty" id="trendempty">Charts appear once a weighted exercise has two or more logged sessions.</p>
+  </section>
+
+  <section class="card">
+    <h2><b>Sleep</b> — last 14 nights</h2>
+    <div class="chartbox" id="sleepchart"></div>
+    <p class="empty" id="sleepempty">No sleep records yet — the watch logs one per morning automatically.</p>
+  </section>
+
+  <section class="card">
+    <h2><b>Requests</b> — program changes for Claude</h2>
+    <p class="hint">Write it here, sync sends it to the vault, Claude reads it next session and updates the watch app.</p>
+    <textarea id="notebox" placeholder="e.g. swap hamstring curls for something else, my machine is broken"></textarea>
+    <div class="btnrow"><button id="notebtn">Log request</button></div>
+    <div class="msg" id="notemsg" hidden></div>
+    <div id="notelist" style="margin-top:14px"></div>
+  </section>
+
+  <section class="card">
+    <h2><b>Vault sync</b> — GitHub</h2>
+    <p class="hint">Paste your GitHub token once. It stays on this phone only — never in any code or repo. It lets the app write your log into the private vault where Claude reads it.</p>
+    <input type="password" id="tokenbox" placeholder="github_pat_..." autocomplete="off">
+    <div class="btnrow">
+      <button id="tokensave">Save token</button>
+      <button id="syncbtn" class="ghost">Sync now</button>
+    </div>
+    <div class="msg" id="syncmsg" hidden></div>
+  </section>
+
+  <p class="savestate" id="savestate"><span class="dot a">&#9679;</span> <span id="savestatetext">On this phone only — add your GitHub token above to sync to the vault</span></p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var EX_NAMES = {
+    "wall-sit": "Wall sit", "spanish-squat": "Spanish squat", "leg-ext-hold": "Leg ext iso hold",
+    "leg-press-narrow": "Leg press (narrow)", "sl-calf-hold": "SL calf hold", "leg-press": "Leg press",
+    "hack-belt-squat": "Hack/belt squat", "seated-calf": "Seated calf", "leg-extension": "Leg extension",
+    "sl-leg-press": "SL leg press", "hamstring-curl": "Hamstring curl", "hip-thrust": "Hip thrust",
+    "tib-raise": "Tib raise", "kot-calf-raise": "KOT calf raise", "patrick-step": "Patrick step",
+    "atg-split-squat": "ATG split squat", "zone2-bike": "Zone 2 bike", "sat-bike": "Engine bike Z2",
+    "dead-bug": "Dead bug", "leg-lowers": "Slow leg lowers", "bridge-march": "Glute bridge march",
+    "side-leg-raise": "Side leg raise", "test-5s": "TEST (5s hold)"
+  };
+  var WEIGHTED = ["leg-press", "leg-press-narrow", "hack-belt-squat", "seated-calf",
+    "leg-extension", "sl-leg-press", "hamstring-curl", "hip-thrust", "leg-ext-hold"];
+  var START_DATE = "2026-08-28";
+
+  // Vault sync target: the private repo Claude reads. The token never leaves
+  // this device (localStorage); the public app repo carries no secrets.
+  var GH_OWNER = "garretlking1-commits", GH_REPO = "hq-vault",
+      GH_PATH = "projects/zepp-bip6/data/companion-log.json", GH_BRANCH = "main";
+  var GH_API = "https://api.github.com/repos/" + GH_OWNER + "/" + GH_REPO + "/contents/" + GH_PATH;
+
+  var LS_STATE = "scratch-state-v1", LS_TOKEN = "scratch-gh-token", LS_SYNC = "scratch-last-sync";
+
+  var state = { entries: [], notes: [], updated: "" };
+  var pending = [];
+  var syncStatus = "local"; // local | ok | fail | busy
+
+  function $(id) { return document.getElementById(id); }
+  function exName(id) { return EX_NAMES[id] || id; }
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  function getToken() { try { return localStorage.getItem(LS_TOKEN) || ""; } catch (e) { return ""; } }
+
+  // ---------- local persistence ----------
+  function loadState() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(LS_STATE) || "null");
+      if (raw && raw.entries) state = raw;
+    } catch (e) {}
+  }
+  function saveLocal() {
+    state.updated = new Date().toISOString();
+    try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function entryKey(e) {
+    if (e.type === "sleep") return e.date + "|SLEEP";
+    return [e.date, e.exId, e.workSec, e.hrAvg, e.load].join("|");
+  }
+
+  function mergeEntries(list) {
+    var have = {};
+    state.entries.forEach(function (e) { have[entryKey(e)] = true; });
+    var added = 0;
+    (list || []).forEach(function (e) {
+      var k = entryKey(e);
+      if (!have[k]) { have[k] = true; state.entries.push(e); added++; }
+    });
+    state.entries.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    return added;
+  }
+
+  function mergeNotes(list) {
+    (list || []).forEach(function (n) {
+      var mine = null;
+      for (var i = 0; i < state.notes.length; i++) if (state.notes[i].ts === n.ts) mine = state.notes[i];
+      if (!mine) state.notes.push(n);
+      else mine.done = mine.done || n.done; // "handled" can only be set, never unset
+    });
+    state.notes.sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
+  }
+
+  // ---------- GitHub vault sync ----------
+  function b64encode(str) {
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64decode(b64) {
+    var bin = atob(b64.replace(/\s/g, "")), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  function ghHeaders(t) {
+    return { "Authorization": "Bearer " + t, "Accept": "application/vnd.github+json" };
+  }
+
+  function ghFetchRemote(t) {
+    return fetch(GH_API + "?ref=" + GH_BRANCH, { headers: ghHeaders(t), cache: "no-store" })
+      .then(function (r) {
+        if (r.status === 404) return { sha: null, data: null };
+        if (r.status === 401 || r.status === 403) throw { kind: "token" };
+        if (!r.ok) throw { kind: "http", status: r.status };
+        return r.json().then(function (j) {
+          var data = null;
+          try { data = JSON.parse(b64decode(j.content)); } catch (e) {}
+          return { sha: j.sha, data: data };
+        });
+      });
+  }
+
+  function ghPush(t, sha) {
+    var body = {
+      message: "scratch companion: data sync",
+      content: b64encode(JSON.stringify({ entries: state.entries, notes: state.notes, updated: state.updated }, null, 1)),
+      branch: GH_BRANCH
+    };
+    if (sha) body.sha = sha;
+    return fetch(GH_API, {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders(t)),
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (r.status === 409 || r.status === 422) throw { kind: "conflict" };
+      if (r.status === 401 || r.status === 403) throw { kind: "token" };
+      if (!r.ok) throw { kind: "http", status: r.status };
+    });
+  }
+
+  function sameData(a) {
+    if (!a) return false;
+    return JSON.stringify({ e: a.entries || [], n: a.notes || [] }) ===
+           JSON.stringify({ e: state.entries, n: state.notes });
+  }
+
+  var syncing = false;
+  function syncNow(quiet, isRetry) {
+    var t = getToken();
+    var msg = $("syncmsg");
+    if (!t) {
+      if (!quiet) showMsg(msg, "No token saved yet — paste one above first.", "warn");
+      syncStatus = "local"; renderSaveState();
+      return Promise.resolve();
+    }
+    if (syncing) return Promise.resolve();
+    syncing = true;
+    syncStatus = "busy"; renderSaveState();
+    return ghFetchRemote(t)
+      .then(function (rem) {
+        if (rem.data) { mergeEntries(rem.data.entries); mergeNotes(rem.data.notes); saveLocal(); }
+        if (sameData(rem.data)) return; // nothing new to write
+        return ghPush(t, rem.sha);
+      })
+      .then(function () {
+        try { localStorage.setItem(LS_SYNC, new Date().toISOString()); } catch (e) {}
+        syncStatus = "ok";
+        syncing = false;
+        if (!quiet) showMsg(msg, "Synced to the vault.", "ok");
+        renderAll();
+      })
+      .catch(function (err) {
+        syncing = false;
+        if (err && err.kind === "conflict" && !isRetry) return syncNow(quiet, true);
+        syncStatus = "fail";
+        renderSaveState();
+        if (err && err.kind === "token") {
+          showMsg(msg, "GitHub said the token isn't valid (expired or wrong permissions). Make a new one and save it above.", "err");
+        } else if (!quiet) {
+          showMsg(msg, "Couldn't reach GitHub — your data is safe on this phone; it'll sync next time.", "warn");
+        }
+      });
+  }
+
+  // Save locally, re-render, and sync in the background.
+  function persist(okEl, okText) {
+    saveLocal();
+    renderAll();
+    showMsg(okEl, okText, "ok");
+    syncNow(true);
+  }
+
+  function showMsg(el, text, cls) {
+    el.textContent = text;
+    el.className = "msg " + cls;
+    el.hidden = false;
+  }
+
+  // ---------- SCRATCH1 parsing ----------
+  function fullDate(mmdd) {
+    if (!/^\d{4}$/.test(mmdd)) return null;
+    var now = new Date();
+    var y = now.getFullYear();
+    var iso = y + "-" + mmdd.slice(0, 2) + "-" + mmdd.slice(2);
+    var d = new Date(iso + "T00:00:00");
+    if (isNaN(d.getTime())) return null;
+    if (d.getTime() > now.getTime() + 86400000) iso = (y - 1) + iso.slice(4);
+    return iso;
+  }
+
+  function num(v) {
+    if (v === "" || v === undefined) return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+
+  function parsePaste(text) {
+    var out = { entries: [], pages: [], errors: [] };
+    var blocks = text.split(/SCRATCH1\|/).map(function (s) { return s.trim(); }).filter(Boolean);
+    if (blocks.length === 0) { out.errors.push("No SCRATCH1 header found — is this the watch QR text?"); return out; }
+    blocks.forEach(function (block) {
+      var m = block.match(/^p(\d+)\/(\d+)\|([\s\S]*)$/);
+      if (!m) { out.errors.push("A block was missing its p1/1 page marker."); return; }
+      out.pages.push(m[1] + "/" + m[2]);
+      m[3].split(";").forEach(function (raw) {
+        var f = raw.trim().split(",");
+        if (f.length < 2 || !fullDate(f[0])) return;
+        if (f[1] === "SLEEP") {
+          out.entries.push({
+            type: "sleep", date: fullDate(f[0]),
+            score: num(f[2]), totalMin: num(f[3]), deepMin: num(f[4])
+          });
+        } else {
+          out.entries.push({
+            type: "workout", date: fullDate(f[0]), exId: f[1],
+            sets: num(f[2]), load: num(f[3]), hrAvg: num(f[4]), hrDelta: num(f[5]),
+            pain: num(f[6]), sleep: num(f[7]), workSec: num(f[8])
+          });
+        }
+      });
+    });
+    return out;
+  }
+
+  // ---------- rendering ----------
+  function renderWeek() {
+    var days = Math.floor((Date.now() - new Date(START_DATE + "T00:00:00").getTime()) / 86400000);
+    $("weekchip").textContent = "Wk " + Math.max(1, Math.floor(days / 7) + 1) + " / Ph 0";
+  }
+
+  function fmtMin(m) {
+    if (m == null) return "--";
+    return Math.floor(m / 60) + "h" + pad2(m % 60);
+  }
+
+  function renderLog() {
+    var box = $("logview");
+    var real = state.entries.filter(function (e) { return e.exId !== "test-5s"; });
+    if (real.length === 0) { box.innerHTML = '<p class="empty">Nothing yet. Scan your first QR export above.</p>'; return; }
+
+    var byDate = {};
+    real.forEach(function (e) { (byDate[e.date] = byDate[e.date] || []).push(e); });
+    var dates = Object.keys(byDate).sort().reverse().slice(0, 10);
+
+    box.innerHTML = "";
+    dates.forEach(function (date) {
+      var group = document.createElement("div");
+      group.className = "daygroup";
+      var lab = document.createElement("div");
+      lab.className = "daylabel";
+      var d = new Date(date + "T00:00:00");
+      var names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      var slp = byDate[date].filter(function (e) { return e.type === "sleep"; })[0];
+      lab.innerHTML = "<span>" + names[d.getDay()] + " " + date.slice(5) + "</span>" +
+        (slp ? '<span class="slp">sleep ' + fmtMin(slp.totalMin) + " / " + (slp.score == null ? "--" : slp.score) + "</span>" : "");
+      group.appendChild(lab);
+
+      byDate[date].filter(function (e) { return e.type === "workout"; }).forEach(function (e) {
+        var row = document.createElement("div");
+        row.className = "exrow";
+        var left = document.createElement("div");
+        left.className = "exname";
+        left.textContent = exName(e.exId);
+        if (e.pain > 0) {
+          var p = document.createElement("span");
+          p.className = "painpill";
+          p.textContent = "pain " + e.pain;
+          left.appendChild(p);
+        }
+        var right = document.createElement("div");
+        right.className = "exdata";
+        var bits = [];
+        if (e.sets != null) bits.push(e.sets + " sets");
+        if (e.load) bits.push('<span class="load">' + e.load + " lb</span>");
+        if (e.hrAvg) {
+          var d2 = "";
+          if (e.hrDelta != null && e.hrDelta !== 0) {
+            d2 = ' <span class="' + (e.hrDelta > 0 ? "up" : "dn") + '">' +
+              (e.hrDelta > 0 ? "+" : "") + e.hrDelta + "</span>";
+          }
+          bits.push("HR " + e.hrAvg + d2);
+        }
+        right.innerHTML = bits.join(" &middot; ") || "&mdash;";
+        row.appendChild(left);
+        row.appendChild(right);
+        group.appendChild(row);
+      });
+      box.appendChild(group);
+    });
+  }
+
+  function weightedWithData() {
+    var seen = {};
+    state.entries.forEach(function (e) {
+      if (e.type === "workout" && WEIGHTED.indexOf(e.exId) !== -1 && e.load) {
+        seen[e.exId] = (seen[e.exId] || 0) + 1;
+      }
+    });
+    return Object.keys(seen).filter(function (k) { return seen[k] >= 2; });
+  }
+
+  function renderTrends() {
+    var sel = $("exselect");
+    var ids = weightedWithData();
+    if (ids.length === 0) {
+      sel.hidden = true; $("loadchart").innerHTML = ""; $("loadstats").innerHTML = "";
+      $("trendempty").hidden = false;
+      return;
+    }
+    $("trendempty").hidden = true;
+    var current = sel.value;
+    sel.innerHTML = "";
+    ids.forEach(function (id) {
+      var o = document.createElement("option");
+      o.value = id; o.textContent = exName(id);
+      sel.appendChild(o);
+    });
+    if (ids.indexOf(current) !== -1) sel.value = current;
+    sel.hidden = false;
+    drawLoadChart(sel.value);
+  }
+
+  function drawLoadChart(exId) {
+    var pts = state.entries.filter(function (e) {
+      return e.type === "workout" && e.exId === exId && e.load;
+    });
+    var W = 480, H = 150, PAD = 30;
+    var loads = pts.map(function (p) { return p.load; });
+    var min = Math.min.apply(null, loads), max = Math.max.apply(null, loads);
+    if (min === max) { min -= 10; max += 10; }
+    var x = function (i) { return PAD + (i / Math.max(1, pts.length - 1)) * (W - PAD * 2); };
+    var y = function (v) { return H - 24 - ((v - min) / (max - min)) * (H - 48); };
+
+    var line = pts.map(function (p, i) { return (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p.load).toFixed(1); }).join(" ");
+    var area = line + " L" + x(pts.length - 1).toFixed(1) + " " + (H - 20) + " L" + PAD + " " + (H - 20) + " Z";
+    var dots = pts.map(function (p, i) {
+      var last = i === pts.length - 1;
+      return '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.load).toFixed(1) + '" r="' + (last ? 5 : 3) +
+        '" fill="' + (last ? "#f2b63c" : "#0b0f14") + '" stroke="#f2b63c" stroke-width="2"/>';
+    }).join("");
+    var labels = pts.map(function (p, i) {
+      return '<text x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" fill="#8d97a6" font-size="10" font-family="IBM Plex Mono,monospace">' + p.date.slice(5) + "</text>";
+    }).join("");
+
+    $("loadchart").innerHTML =
+      '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" height="' + H + '" role="img" aria-label="Load trend">' +
+      '<line x1="' + PAD + '" y1="' + (H - 20) + '" x2="' + (W - PAD) + '" y2="' + (H - 20) + '" stroke="#243140"/>' +
+      '<path d="' + area + '" fill="rgba(242,182,60,0.08)"/>' +
+      '<path d="' + line + '" fill="none" stroke="#f2b63c" stroke-width="2"/>' +
+      dots + labels + "</svg>";
+
+    var lastP = pts[pts.length - 1];
+    var best = Math.max.apply(null, loads);
+    var hr = pts.filter(function (p) { return p.hrAvg; });
+    var lastHr = hr.length ? hr[hr.length - 1] : null;
+    $("loadstats").innerHTML =
+      "<span>last <b>" + lastP.load + " lb</b></span>" +
+      "<span>best <b>" + best + " lb</b></span>" +
+      (lastHr ? "<span>HR <b>" + lastHr.hrAvg + "</b>" +
+        (lastHr.hrDelta != null && lastHr.hrDelta !== 0 ? " (" + (lastHr.hrDelta > 0 ? "+" : "") + lastHr.hrDelta + " vs usual)" : "") + "</span>" : "");
+  }
+
+  function renderSleep() {
+    var sleeps = state.entries.filter(function (e) { return e.type === "sleep" && e.totalMin != null; }).slice(-14);
+    if (sleeps.length === 0) { $("sleepchart").innerHTML = ""; $("sleepempty").hidden = false; return; }
+    $("sleepempty").hidden = true;
+    var W = 480, H = 140, PAD = 24;
+    var bw = Math.min(28, (W - PAD * 2) / sleeps.length - 6);
+    var maxMin = Math.max(540, Math.max.apply(null, sleeps.map(function (s) { return s.totalMin; })));
+    var bars = sleeps.map(function (s, i) {
+      var h = (s.totalMin / maxMin) * (H - 50);
+      var bx = PAD + i * ((W - PAD * 2) / sleeps.length);
+      var color = s.totalMin >= 420 ? "#4caf50" : s.totalMin >= 360 ? "#ffc107" : "#ef5350";
+      return '<rect x="' + bx.toFixed(1) + '" y="' + (H - 30 - h).toFixed(1) + '" width="' + bw + '" height="' + h.toFixed(1) + '" rx="3" fill="' + color + '" opacity="0.85"/>' +
+        '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 16) + '" text-anchor="middle" fill="#8d97a6" font-size="9" font-family="IBM Plex Mono,monospace">' + s.date.slice(5) + "</text>" +
+        (s.score != null ? '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 34 - h).toFixed(1) + '" text-anchor="middle" fill="#e9eef5" font-size="10" font-family="IBM Plex Mono,monospace">' + s.score + "</text>" : "");
+    }).join("");
+    var goal = H - 30 - (420 / maxMin) * (H - 50);
+    $("sleepchart").innerHTML =
+      '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" height="' + H + '" role="img" aria-label="Sleep, last 14 nights">' +
+      '<line x1="' + PAD + '" y1="' + goal.toFixed(1) + '" x2="' + (W - PAD) + '" y2="' + goal.toFixed(1) + '" stroke="#4caf50" stroke-dasharray="4 4" opacity="0.4"/>' +
+      '<text x="' + (W - PAD) + '" y="' + (goal - 4).toFixed(1) + '" text-anchor="end" fill="#4caf50" font-size="9" font-family="IBM Plex Mono,monospace" opacity="0.7">7h goal</text>' +
+      bars + "</svg>";
+  }
+
+  function renderNotes() {
+    var box = $("notelist");
+    box.innerHTML = "";
+    if (state.notes.length === 0) return;
+    state.notes.slice().reverse().forEach(function (n) {
+      var div = document.createElement("div");
+      div.className = "noteitem" + (n.done ? " notedone" : "");
+      var t = document.createElement("div");
+      t.className = "notetime";
+      t.textContent = n.ts.slice(0, 10) + (n.done ? " - handled by Claude" : " - waiting for Claude");
+      var body = document.createElement("div");
+      body.className = "notetext";
+      body.textContent = n.text;
+      div.appendChild(t);
+      div.appendChild(body);
+      box.appendChild(div);
+    });
+  }
+
+  function renderSaveState() {
+    var el = $("savestate");
+    var dot = el.querySelector(".dot");
+    var txt = $("savestatetext");
+    if (!getToken()) {
+      dot.className = "dot a";
+      txt.textContent = "On this phone only — add your GitHub token above to sync to the vault";
+    } else if (syncStatus === "busy") {
+      dot.className = "dot a";
+      txt.textContent = "Syncing to the vault...";
+    } else if (syncStatus === "fail") {
+      dot.className = "dot r";
+      txt.textContent = "Sync failed — data safe on this phone; will retry on next save";
+    } else {
+      dot.className = "dot g";
+      var last = "";
+      try { last = localStorage.getItem(LS_SYNC) || ""; } catch (e) {}
+      txt.textContent = "Synced to the vault" + (last ? " - " + last.slice(0, 16).replace("T", " ") : "") + " - Claude can read it";
+    }
+  }
+
+  function renderAll() {
+    renderWeek(); renderLog(); renderTrends(); renderSleep(); renderNotes(); renderSaveState();
+  }
+
+  // ---------- camera QR scanner ----------
+  var camStream = null, camTimer = 0, camPages = {}, camTotal = 0;
+
+  function stopCamera() {
+    if (camTimer) { clearInterval(camTimer); camTimer = 0; }
+    if (camStream) {
+      camStream.getTracks().forEach(function (t) { t.stop(); });
+      camStream = null;
+    }
+    $("cambox").hidden = true;
+    $("camvideo").srcObject = null;
+  }
+
+  function finishScan() {
+    var keys = Object.keys(camPages).sort(function (a, b) { return a - b; });
+    stopCamera();
+    if (keys.length === 0) return;
+    $("pastebox").value = keys.map(function (k) { return camPages[k]; }).join("\n");
+    camPages = {}; camTotal = 0;
+    parseNow();
+  }
+
+  function handleScan(text) {
+    var m = /^SCRATCH1\|p(\d+)\/(\d+)\|/.exec(text);
+    if (!m) { $("cammsg").textContent = "That QR isn't from the Scratch watch app."; return; }
+    var pg = m[1];
+    camTotal = Number(m[2]);
+    if (camPages[pg]) return;
+    camPages[pg] = text;
+    if (Object.keys(camPages).length >= camTotal) {
+      finishScan();
+    } else {
+      $("cammsg").textContent = "Got page " + pg + "/" + camTotal + " — tap NEXT on the watch, keep the camera up.";
+    }
+  }
+
+  $("camerabtn").addEventListener("click", function () {
+    var msg = $("parsemsg");
+    if (!window.jsQR || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showMsg(msg, "Camera scanning isn't available here — scan with your camera app, copy the text, and paste it below.", "warn");
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+      .then(function (stream) {
+        camStream = stream;
+        msg.hidden = true;
+        camPages = {}; camTotal = 0;
+        var video = $("camvideo");
+        video.srcObject = stream;
+        $("cambox").hidden = false;
+        $("cammsg").textContent = "Point the camera at the watch QR";
+        var p = video.play();
+        if (p && p.catch) p.catch(function () {});
+        var canvas = document.createElement("canvas");
+        var ctx = canvas.getContext("2d", { willReadFrequently: true });
+        camTimer = setInterval(function () {
+          if (!video.videoWidth) return;
+          var scale = Math.min(1, 640 / video.videoWidth);
+          canvas.width = Math.round(video.videoWidth * scale);
+          canvas.height = Math.round(video.videoHeight * scale);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          var img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var code = null;
+          try { code = jsQR(img.data, img.width, img.height, { inversionAttempts: "attemptBoth" }); } catch (e) {}
+          if (code && code.data) handleScan(code.data);
+        }, 250);
+      })
+      .catch(function () {
+        showMsg(msg, "Camera permission was blocked — allow it in Settings, or scan with your camera app and paste the text below.", "warn");
+      });
+  });
+
+  $("camdone").addEventListener("click", finishScan);
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stopCamera();
+  });
+
+  // ---------- wire up ----------
+  function parseNow() {
+    var res = parsePaste($("pastebox").value);
+    var msg = $("parsemsg");
+    if (res.errors.length && res.entries.length === 0) {
+      showMsg(msg, res.errors[0], "err");
+      $("savebtn").hidden = true;
+      return;
+    }
+    var have = {};
+    state.entries.forEach(function (e) { have[entryKey(e)] = true; });
+    pending = res.entries.filter(function (e) { return !have[entryKey(e)]; });
+    var skipped = res.entries.length - pending.length;
+    if (pending.length === 0) {
+      showMsg(msg, "Scanned " + res.entries.length + " entries — all already saved.", "ok");
+      $("savebtn").hidden = true;
+      return;
+    }
+    showMsg(msg, "Scanned page " + res.pages.join(", ") + ": " + pending.length + " new" +
+      (skipped ? ", " + skipped + " already saved" : "") + ".", "ok");
+    var sb = $("savebtn");
+    sb.textContent = "Save " + pending.length + " new";
+    sb.hidden = false;
+  }
+
+  $("parsebtn").addEventListener("click", parseNow);
+
+  $("savebtn").addEventListener("click", function () {
+    if (pending.length === 0) return;
+    mergeEntries(pending);
+    pending = [];
+    $("savebtn").hidden = true;
+    $("pastebox").value = "";
+    persist($("parsemsg"), "Saved.");
+  });
+
+  $("notebtn").addEventListener("click", function () {
+    var text = $("notebox").value.trim();
+    if (!text) return;
+    state.notes.push({ ts: new Date().toISOString(), text: text, done: false });
+    $("notebox").value = "";
+    persist($("notemsg"), "Request logged.");
+  });
+
+  $("tokensave").addEventListener("click", function () {
+    var t = $("tokenbox").value.trim();
+    if (!t) { showMsg($("syncmsg"), "Paste the token first.", "warn"); return; }
+    try { localStorage.setItem(LS_TOKEN, t); } catch (e) {}
+    $("tokenbox").value = "";
+    $("tokenbox").placeholder = "token saved - paste a new one to replace";
+    syncNow(false);
+  });
+
+  $("syncbtn").addEventListener("click", function () { syncNow(false); });
+  $("exselect").addEventListener("change", function () { drawLoadChart(this.value); });
+
+  // ---------- boot ----------
+  loadState();
+  if (getToken()) $("tokenbox").placeholder = "token saved - paste a new one to replace";
+  renderAll();
+  syncNow(true);
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
