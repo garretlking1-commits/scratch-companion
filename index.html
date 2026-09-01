@@ -178,7 +178,7 @@
     <h2><b>Import</b> from watch QR</h2>
     <details class="help">
       <summary>How to get the data here</summary>
-      <p>On the watch: home screen &rarr; <b>Data QR</b>. Tap <b>Scan with camera</b> below and point the phone at the watch — it grabs every page as you tap NEXT. Backup: scan with your camera app, copy the text, paste it below.</p>
+      <p>On the watch: home screen &rarr; <b>Data QR</b>. Point your <b>iPhone camera app</b> at it and tap the yellow banner — this page opens and saves the data by itself. If the watch shows more pages, tap NEXT on the watch and scan again. The in-page camera button below is a backup (Apple limits camera use in installed web apps, so it can be unreliable there — it works better in Safari).</p>
     </details>
     <div id="cambox" hidden>
       <video id="camvideo" playsinline muted></video>
@@ -224,7 +224,7 @@
 
   <section class="card">
     <h2><b>Vault sync</b> — GitHub</h2>
-    <p class="hint">Paste your GitHub token once. It stays on this phone only — never in any code or repo. It lets the app write your log into the private vault where Claude reads it.</p>
+    <p class="hint">Paste your GitHub token once. It stays on this phone only — never in any code or repo. It lets the app write your log into the private vault where Claude reads it. Heads up: iPhone keeps Safari and the home-screen app in separate storage, so save the token in each once — the vault keeps both in sync after that.</p>
     <input type="password" id="tokenbox" placeholder="github_pat_..." autocomplete="off">
     <div class="btnrow">
       <button id="tokensave">Save token</button>
@@ -711,7 +711,10 @@
       showMsg(msg, "Camera scanning isn't available here — scan with your camera app, copy the text, and paste it below.", "warn");
       return;
     }
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    })
       .then(function (stream) {
         camStream = stream;
         msg.hidden = true;
@@ -726,7 +729,7 @@
         var ctx = canvas.getContext("2d", { willReadFrequently: true });
         camTimer = setInterval(function () {
           if (!video.videoWidth) return;
-          var scale = Math.min(1, 640 / video.videoWidth);
+          var scale = Math.min(1, 1024 / video.videoWidth);
           canvas.width = Math.round(video.videoWidth * scale);
           canvas.height = Math.round(video.videoHeight * scale);
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -802,10 +805,33 @@
   $("syncbtn").addEventListener("click", function () { syncNow(false); });
   $("exselect").addEventListener("change", function () { drawLoadChart(this.value); });
 
+  // Opened from a watch-QR scan: the payload rides in the URL fragment.
+  // Import it, save, and sync — no taps needed.
+  function importFromHash() {
+    var h = "";
+    try { h = decodeURIComponent(location.hash || ""); } catch (e) { h = location.hash || ""; }
+    var i = h.indexOf("SCRATCH1|");
+    if (i === -1) return;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    var res = parsePaste(h.slice(i));
+    if (res.entries.length === 0) return;
+    var have = {};
+    state.entries.forEach(function (e) { have[entryKey(e)] = true; });
+    var fresh = res.entries.filter(function (e) { return !have[entryKey(e)]; });
+    var more = " More pages on the watch? Tap NEXT there and scan again.";
+    if (fresh.length === 0) {
+      showMsg($("parsemsg"), "Scanned QR page " + res.pages.join(", ") + " — everything already saved." + more, "ok");
+      return;
+    }
+    mergeEntries(fresh);
+    persist($("parsemsg"), "Imported " + fresh.length + " entries from the QR." + more);
+  }
+
   // ---------- boot ----------
   loadState();
   if (getToken()) $("tokenbox").placeholder = "token saved - paste a new one to replace";
   renderAll();
+  importFromHash();
   syncNow(true);
 
   if ("serviceWorker" in navigator) {
