@@ -9,3 +9,4 @@ Phone companion PWA for **Scratch**, a Zepp OS workout app for the Amazfit Bip 6
 - Installable: manifest + service worker, offline-capable
 
 Hosted on GitHub Pages from `main`. No build step — plain HTML/CSS/JS.
+
