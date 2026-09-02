@@ -468,7 +468,8 @@
           out.entries.push({
             type: "workout", date: fullDate(f[0]), exId: SHORT2ID[f[1]] || f[1],
             sets: num(f[2]), load: num(f[3]), hrAvg: num(f[4]), hrDelta: num(f[5]),
-            pain: num(f[6]), sleep: num(f[7]), workSec: num(f[8])
+            pain: num(f[6]), sleep: num(f[7]), workSec: num(f[8]),
+            tod: num(f[9]) // minutes since midnight the exercise started
           });
         }
       });
@@ -505,7 +506,21 @@
       var d = new Date(date + "T00:00:00");
       var names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       var slp = byDate[date].filter(function (e) { return e.type === "sleep"; })[0];
-      lab.innerHTML = "<span>" + names[d.getDay()] + " " + date.slice(5) + "</span>" +
+      // Full-session span: first exercise start -> end of the last one's work.
+      // This is the "am I getting through the workout faster?" number.
+      var timed = byDate[date].filter(function (e) { return e.type === "workout" && e.tod != null; });
+      var sess = "";
+      if (timed.length > 0) {
+        var start = Infinity, end = 0;
+        timed.forEach(function (e) {
+          if (e.tod < start) start = e.tod;
+          var fin = e.tod + Math.round((e.workSec || 0) / 60);
+          if (fin > end) end = fin;
+        });
+        var span = end - start;
+        if (span > 0) sess = " &middot; " + span + "m";
+      }
+      lab.innerHTML = "<span>" + names[d.getDay()] + " " + date.slice(5) + sess + "</span>" +
         (slp ? '<span class="slp">sleep ' + fmtMin(slp.totalMin) + " / " + (slp.score == null ? "--" : slp.score) + "</span>" : "");
       group.appendChild(lab);
 
