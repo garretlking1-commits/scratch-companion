@@ -253,6 +253,18 @@
   };
   var WEIGHTED = ["leg-press", "leg-press-narrow", "hack-belt-squat", "seated-calf",
     "leg-extension", "sl-leg-press", "hamstring-curl", "hip-thrust", "leg-ext-hold"];
+  // The watch QR uses compact exercise codes (v1.0.10+) to keep codes small
+  // enough for its renderer; older full-length ids still pass through.
+  var SHORT2ID = {
+    ws: "wall-sit", sq: "spanish-squat", lh: "leg-ext-hold",
+    ln: "leg-press-narrow", ch: "sl-calf-hold", lp: "leg-press",
+    hb: "hack-belt-squat", sc: "seated-calf", le: "leg-extension",
+    sp: "sl-leg-press", hc: "hamstring-curl", ht: "hip-thrust",
+    tr: "tib-raise", kc: "kot-calf-raise", ps: "patrick-step",
+    as: "atg-split-squat", zb: "zone2-bike", sb: "sat-bike",
+    db: "dead-bug", ll: "leg-lowers", bm: "bridge-march",
+    sr: "side-leg-raise", t5: "test-5s"
+  };
   var START_DATE = "2026-08-28";
 
   // Vault sync target: the private repo Claude reads. The token never leaves
@@ -454,7 +466,7 @@
           });
         } else {
           out.entries.push({
-            type: "workout", date: fullDate(f[0]), exId: f[1],
+            type: "workout", date: fullDate(f[0]), exId: SHORT2ID[f[1]] || f[1],
             sets: num(f[2]), load: num(f[3]), hrAvg: num(f[4]), hrDelta: num(f[5]),
             pain: num(f[6]), sleep: num(f[7]), workSec: num(f[8])
           });
