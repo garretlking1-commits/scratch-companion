@@ -864,6 +864,13 @@
   importFromHash();
   syncNow(true);
 
+  // A camera scan can land in an ALREADY-OPEN tab (iOS reuses it) — then only
+  // the URL fragment changes and no reload happens. Catch it here too.
+  window.addEventListener("hashchange", importFromHash);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) importFromHash();
+  });
+
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(function () {});
   }
