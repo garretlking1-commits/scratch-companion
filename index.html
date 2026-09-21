@@ -172,6 +172,7 @@
     <div class="wordmark">Scratch <span>HQ</span></div>
     <div class="weekchip" id="weekchip">Wk —</div>
   </header>
+  <p class="hint" aria-label="Companion version">Sync 1.0.18</p>
   <p class="tagline">Comeback log — data off the watch, trends on the phone, straight into the vault.</p>
 
   <section class="card">
@@ -302,16 +303,52 @@
 
   function entryKey(e) {
     if (e.type === "sleep") return e.date + "|SLEEP";
-    return [e.date, e.exId, e.workSec, e.hrAvg, e.load].join("|");
+    if (e.watchId) return "watch|" + e.watchId;
+    return "qr|" + qrKey(e);
+  }
+
+  // Match the full QR projection, including time and sets. A native watch ID is
+  // authoritative: two different IDs must never collapse into one workout.
+  function qrKey(e) {
+    return JSON.stringify(["type", "date", "exId", "sets", "load", "hrAvg",
+      "hrDelta", "pain", "sleep", "workSec", "tod"].map(function (k) {
+      return e[k] == null ? null : e[k];
+    }));
+  }
+
+  function entryIndex(entries, incoming) {
+    var exact = entries.findIndex(function (e) { return entryKey(e) === entryKey(incoming); });
+    if (exact !== -1 || incoming.type === "sleep") return exact;
+    return entries.findIndex(function (e) {
+      return e.type === "workout" && !(e.watchId && incoming.watchId) && qrKey(e) === qrKey(incoming);
+    });
+  }
+
+  function mergeEntry(existing, incoming) {
+    // QR imports cannot strip native metadata. Missing arbitrary fields on either
+    // side survive; newer native records may update the fields they do carry.
+    var nativeWins = existing.watchId && !incoming.watchId;
+    var merged = nativeWins ? Object.assign({}, incoming, existing) : Object.assign({}, existing, incoming);
+    if (existing.watch || incoming.watch) merged.watch = nativeWins
+      ? Object.assign({}, incoming.watch, existing.watch)
+      : Object.assign({}, existing.watch, incoming.watch);
+    return merged;
+  }
+
+  function freshEntries(list) {
+    var combined = state.entries.slice(), fresh = [];
+    list.forEach(function (e) {
+      if (entryIndex(combined, e) === -1) { combined.push(e); fresh.push(e); }
+    });
+    return fresh;
   }
 
   function mergeEntries(list) {
-    var have = {};
-    state.entries.forEach(function (e) { have[entryKey(e)] = true; });
     var added = 0;
     (list || []).forEach(function (e) {
-      var k = entryKey(e);
-      if (!have[k]) { have[k] = true; state.entries.push(e); added++; }
+      var index = entryIndex(state.entries, e);
+      if (index === -1) { state.entries.push(e); added++; }
+      else state.entries[index] = mergeEntry(state.entries[index], e);
     });
     state.entries.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
     return added;
@@ -319,14 +356,13 @@
 
   function mergeNotes(list) {
     (list || []).forEach(function (n) {
-      var mine = null;
-      for (var i = 0; i < state.notes.length; i++) if (state.notes[i].ts === n.ts) mine = state.notes[i];
-      if (!mine) state.notes.push(n);
-      else mine.done = mine.done || n.done; // "handled" can only be set, never unset
+      var index = state.notes.findIndex(function (mine) { return mine.ts === n.ts && mine.text === n.text; });
+      if (index === -1) state.notes.push(n);
+      else state.notes[index] = Object.assign({}, state.notes[index], n,
+        { done: state.notes[index].done || n.done });
     });
-    state.notes.sort(function (a, b) { return a.ts < b.ts ? -1 : 1; });
+    state.notes.sort(function (a, b) { return a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0; });
   }
-
   // ---------- GitHub vault sync ----------
   function b64encode(str) {
     var bytes = new TextEncoder().encode(str), bin = "";
@@ -351,7 +387,10 @@
         if (!r.ok) throw { kind: "http", status: r.status };
         return r.json().then(function (j) {
           var data = null;
-          try { data = JSON.parse(b64decode(j.content)); } catch (e) {}
+          try { data = JSON.parse(b64decode(j.content)); } catch (e) { throw { kind: "schema" }; }
+          if (!data || !Array.isArray(data.entries) || !Array.isArray(data.notes) || !j.sha ||
+              data.entries.some(function (e) { return !e || ["sleep", "workout"].indexOf(e.type) === -1 || typeof e.date !== "string" || (e.watchId !== undefined && typeof e.watchId !== "string"); }) ||
+              data.notes.some(function (n) { return !n || typeof n.ts !== "string" || typeof n.text !== "string" || typeof n.done !== "boolean"; })) throw { kind: "schema" };
           return { sha: j.sha, data: data };
         });
       });
@@ -788,9 +827,7 @@
       $("savebtn").hidden = true;
       return;
     }
-    var have = {};
-    state.entries.forEach(function (e) { have[entryKey(e)] = true; });
-    pending = res.entries.filter(function (e) { return !have[entryKey(e)]; });
+    pending = freshEntries(res.entries);
     var skipped = res.entries.length - pending.length;
     if (pending.length === 0) {
       showMsg(msg, "Scanned " + res.entries.length + " entries — all already saved.", "ok");
@@ -845,9 +882,7 @@
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
     var res = parsePaste(h.slice(i));
     if (res.entries.length === 0) return;
-    var have = {};
-    state.entries.forEach(function (e) { have[entryKey(e)] = true; });
-    var fresh = res.entries.filter(function (e) { return !have[entryKey(e)]; });
+    var fresh = freshEntries(res.entries);
     var more = " More pages on the watch? Tap NEXT there and scan again.";
     if (fresh.length === 0) {
       showMsg($("parsemsg"), "Scanned QR page " + res.pages.join(", ") + " — everything already saved." + more, "ok");

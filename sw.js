@@ -1,7 +1,7 @@
 // Network-first cache: the app always tries the live version, and falls back
 // to the last cached copy when offline (e.g. at the gym with no signal).
 // GitHub API calls are never cached — sync must always be live.
-var CACHE = "scratch-v1";
+var CACHE = "scratch-v2-sync-1.0.18";
 
 self.addEventListener("install", function (e) {
   e.waitUntil(
@@ -29,7 +29,7 @@ self.addEventListener("fetch", function (e) {
         return r;
       })
       .catch(function () {
-        return caches.match(e.request).then(function (hit) {
+        return caches.open(CACHE).then(function (cache) { return cache.match(e.request); }).then(function (hit) {
           return hit || Response.error();
         });
       })

@@ -10,3 +10,11 @@ Phone companion PWA for **Scratch**, a Zepp OS workout app for the Amazfit Bip 6
 
 Hosted on GitHub Pages from `main`. No build step — plain HTML/CSS/JS.
 
+
+Sync compatibility regressions (Node.js built-in test runner):
+
+```sh
+node --test tests/sync.test.mjs
+```
+
+The page's visible `Sync 1.0.18` label identifies the native-watch-compatible merge. Close and reopen older Safari/home-screen copies before syncing. Updating does not clear local data or tokens.
