@@ -83,3 +83,16 @@ button { min-height:44px; }
  .table-scroll { margin:0 -3px; }
 }
 @media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto!important; } }
+.health-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px; }
+.health-card { border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0;overflow-wrap:anywhere; }
+.health-card h3 { margin:0 0 12px;font-size:20px;color:var(--gold); }
+.health-card p { margin:8px 0; }
+.health-card dl { display:grid;grid-template-columns:1fr auto;gap:8px; }
+.health-card dd { margin:0;text-align:right; }
+.health-details { margin-top:12px;max-height:340px;overflow:auto; }
+.health-details summary { cursor:pointer;min-height:44px;padding-top:10px; }
+.health-details table { width:100%;font-size:12px; }
+.health-chart { width:100%;height:auto;display:block; }
+#health-date { max-width:240px; }
+#health-status[data-state="error"],.health-warning { color:#f5b78e; }
+@media(max-width:700px) { .health-grid { grid-template-columns:1fr; }.health-card { padding:12px; } }

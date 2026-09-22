@@ -173,7 +173,7 @@
     <div class="wordmark">Scratch <span>HQ</span></div>
     <div class="weekchip" id="weekchip">Wk —</div>
   </header>
-  <p class="version" aria-label="Companion version">Dashboard 1.1.0</p>
+  <p class="version" aria-label="Companion version">Dashboard 1.2.0</p>
   <p class="tagline">Your training, sleep and weight. One day at a time.</p>
   <noscript><p class="noscript">Enable JavaScript to view your journal and save measurements.</p></noscript>
   <main>
@@ -184,6 +184,13 @@
     <article><span class="metric-label">Training this week</span><strong class="metric-value" id="training-days">0 / 7 days</strong><span class="metric-detail" id="training-minutes">Last 7 calendar days</span></article>
     <article><span class="metric-label">Latest recorded sleep</span><strong class="metric-value" id="latest-sleep">No sleep data</strong><span class="metric-detail" id="latest-sleep-date">Sync to retrieve your watch records.</span></article>
   </div>
+  <section class="card" aria-labelledby="health-heading">
+    <div class="section-heading"><h2 id="health-heading">From your watch</h2><button id="health-sync" class="ghost" type="button">Refresh watch data</button></div>
+    <p class="hint">Open Scratch 1.0.20 on your watch and tap Sync to vault, with Zepp open on your iPhone. Then refresh here. Readings depend on watch permissions and available measurements.</p>
+    <p id="health-status" role="status" aria-live="polite">Connect GitHub to retrieve your watch data.</p>
+    <label for="health-date">Watch day</label><select id="health-date" disabled></select>
+    <div id="health-content"></div>
+  </section>
   <div class="dashboard-main">
     <section class="card weight-entry" aria-labelledby="weight-entry-heading">
       <h2 id="weight-entry-heading">Log body weight</h2>
@@ -272,7 +279,7 @@
     </div>
     <div class="msg" id="syncmsg" hidden></div>
   </section></details>
-  <details class="tools"><summary>What can this dashboard see?</summary><ul><li><b>Available now:</b> Scratch workouts, lifting loads, workout heart-rate summaries, pain notes, recorded sleep and your manual body-weight entries.</li><li><b>Possible with a future watch update:</b> daily steps, calorie counters, standing, resting heart rate, sleep stages, blood oxygen, stress and PAI. These are not being collected here yet.</li><li><b>Not currently connected:</b> HRV and Readiness. These values are not available through a verified connection to Scratch.</li></ul><p class="hint">Readings are wearable observations. This dashboard does not change your rehabilitation routine.</p></details>
+  <details class="tools"><summary>What can this dashboard see?</summary><ul><li><b>Available now:</b> Scratch workouts, lifting loads, workout heart-rate summaries, pain notes, recorded sleep and your manual body-weight entries.</li><li><b>With Scratch 1.0.20:</b> available daily steps, calorie counters, standing hours, resting and recorded heart rate, sleep stages and naps, recent blood oxygen, stress, PAI and raw training metrics. Install the update, allow watch permissions and manually sync to collect them.</li><li><b>Not currently connected:</b> HRV and Readiness. These values are not available through a verified connection to Scratch.</li></ul><p class="hint">Readings are wearable observations. This dashboard does not change your rehabilitation routine.</p></details>
   </main>
 
   <p class="savestate" id="savestate"><span class="dot a">&#9679;</span> <span id="savestatetext">On this phone only — add your GitHub token above to sync to the vault</span></p>
@@ -281,6 +288,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script src="./weights.js"></script>
 <script src="./weight-sync.js"></script>
+<script src="./health-schema.js"></script>
+<script src="./health-data.js"></script>
+<script src="./health-view.js"></script>
 <script src="./dashboard.js"></script>
 <script>
 (function () {

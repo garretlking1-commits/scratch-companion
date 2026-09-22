@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-function page() {
+function page(healthReader) {
   const elements = new Map();
   function element() {
     return {value:'',hidden:false,textContent:'',children:[],listeners:{},dataset:{},
@@ -21,7 +21,7 @@ function page() {
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(new URL('../weights.js',import.meta.url),'utf8'),ctx);
   vm.runInContext(fs.readFileSync(new URL('../dashboard.js',import.meta.url),'utf8'),ctx);
-  const api=ctx.ScratchDashboard.init({document,tracker,getEntries:()=>[],getToken:()=>'',syncWorkouts:async()=>{calls.push(['workouts']);},getWorkoutStatus:()=>({status:'local'})});
+  const api=ctx.ScratchDashboard.init({document,tracker,healthReader,getEntries:()=>[],getToken:()=>'',syncWorkouts:async()=>{calls.push(['workouts']);},getWorkoutStatus:()=>({status:'local'})});
   return {api,records,calls,tracker,get:id=>document.getElementById(id)};
 }
 
@@ -59,6 +59,14 @@ test('history retains the exact entered two-decimal reading while summaries roun
 test('dashboard sync requests both independent data sources and re-enables refresh',async()=>{
   const p=page();await p.get('dashboard-sync').emit('click');
   assert.ok(p.calls.some(c=>c[0]==='workouts'));assert.ok(p.calls.some(c=>c[0]==='sync'));
+  assert.equal(p.get('dashboard-sync').disabled,false);
+});
+
+test('health sync failure does not block weight or workout refresh',async()=>{
+  let attempts=0;
+  const p=page({sync:async()=>{attempts++;throw Error('health unavailable');}});
+  await p.api.syncAll();
+  assert.equal(attempts,1);assert.ok(p.calls.some(c=>c[0]==='workouts'));assert.ok(p.calls.some(c=>c[0]==='sync'));
   assert.equal(p.get('dashboard-sync').disabled,false);
 });
 

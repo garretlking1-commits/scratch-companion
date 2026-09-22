@@ -18,6 +18,8 @@
       storage: root.localStorage, fetch: root.fetch.bind(root), getToken: options.getToken,
       api: API, onChange: () => refresh()
     });
+    const health = options.healthReader || (root.ScratchHealthData && root.ScratchHealthData.createReader({storage:root.localStorage,fetch:root.fetch.bind(root),getToken:options.getToken}));
+    if (health && root.ScratchHealthView) root.ScratchHealthView.init({document:doc,reader:health});
     function text(id, value) { $(id).textContent = value; }
     function message(value, error = false) {
       text("weight-message", value); $("weight-message").hidden = !value;
@@ -125,7 +127,7 @@
     async function syncWeights() { await tracker.sync(); refresh(); }
     async function syncAll() {
       $("dashboard-sync").disabled=true;
-      try { await Promise.allSettled([options.syncWorkouts(),syncWeights()]); }
+      try { await Promise.allSettled([options.syncWorkouts(),syncWeights(),health ? health.sync() : Promise.resolve()]); }
       finally { $("dashboard-sync").disabled=false;refresh(); }
     }
     $("weight-form").addEventListener("submit",async event=>{
