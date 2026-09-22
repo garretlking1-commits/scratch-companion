@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Scratch Companion</title>
-<meta name="description" content="Phone companion for the Scratch watch app — scan workout QR exports, chart trends, sync to the vault.">
+<title>Scratch · Training journal</title>
+<meta name="description" content="Your Scratch workout, sleep and body-weight journal. Privately synced with your GitHub vault.">
 <meta name="theme-color" content="#0b0f14">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -165,6 +165,7 @@
     border: 1px solid var(--line); border-radius: 8px;
   }
 </style>
+<link rel="stylesheet" href="./dashboard.css">
 </head>
 <body>
 <div class="wrap">
@@ -172,10 +173,45 @@
     <div class="wordmark">Scratch <span>HQ</span></div>
     <div class="weekchip" id="weekchip">Wk —</div>
   </header>
-  <p class="hint" aria-label="Companion version">Sync 1.0.18</p>
-  <p class="tagline">Comeback log — data off the watch, trends on the phone, straight into the vault.</p>
+  <p class="version" aria-label="Companion version">Dashboard 1.1.0</p>
+  <p class="tagline">Your training, sleep and weight. One day at a time.</p>
+  <noscript><p class="noscript">Enable JavaScript to view your journal and save measurements.</p></noscript>
+  <main>
+  <div class="journal-heading"><div><p class="eyebrow">Personal training journal</p><h1>The daily picture</h1></div><button id="dashboard-sync" type="button">Sync dashboard</button></div>
+  <div class="overview" aria-label="Journal overview">
+    <article><span class="metric-label">Latest body weight</span><strong class="metric-value" id="latest-weight">No weigh-ins</strong><span class="metric-detail" id="latest-weight-date">Add your first reading below.</span></article>
+    <article><span class="metric-label">Change from first reading</span><strong class="metric-value" id="weight-change">—</strong><span class="metric-detail" id="weight-change-date">Change appears after two readings.</span></article>
+    <article><span class="metric-label">Training this week</span><strong class="metric-value" id="training-days">0 / 7 days</strong><span class="metric-detail" id="training-minutes">Last 7 calendar days</span></article>
+    <article><span class="metric-label">Latest recorded sleep</span><strong class="metric-value" id="latest-sleep">No sleep data</strong><span class="metric-detail" id="latest-sleep-date">Sync to retrieve your watch records.</span></article>
+  </div>
+  <div class="dashboard-main">
+    <section class="card weight-entry" aria-labelledby="weight-entry-heading">
+      <h2 id="weight-entry-heading">Log body weight</h2>
+      <form id="weight-form">
+        <label for="weight-date">Measurement date</label><input id="weight-date" type="date" min="1900-01-01" required>
+        <div class="weight-inputs"><div><label for="weight-value">Weight</label><input id="weight-value" type="number" inputmode="decimal" step="0.01" min="0.5" max="1500" placeholder="0.0" required></div><div><label for="weight-unit">Unit</label><select id="weight-unit"><option value="lb" selected>lb</option><option value="kg">kg</option></select></div></div>
+        <button id="weight-save" type="submit">Save weigh-in</button><button id="weight-cancel" class="ghost" type="button" hidden>Cancel edit</button>
+      </form>
+      <p class="hint">Pounds by default. Use the date you measured. Corrections stay with the original reading.</p>
+      <p id="weight-message" class="msg" role="status" aria-live="polite" hidden></p>
+    </section>
+    <section class="card" aria-labelledby="weight-trend-heading">
+      <div class="chart-heading"><h2 id="weight-trend-heading">Weight over time</h2><span class="chart-unit">POUNDS</span></div>
+      <div id="weight-chart"></div><p id="weight-chart-empty">Your first weigh-in starts the chart. Each point is a day's average.</p>
+      <span class="metric-label">7-day average</span><div class="average" id="weight-average">—</div><p class="average-caption" id="weight-average-date">Average of measured days, not missing days.</p>
+      <div class="sync-strip"><p id="weight-status" role="status" aria-live="polite">Weight: on this phone.</p><button id="weight-sync" class="ghost" type="button">Sync weight</button></div>
+    </section>
+  </div>
+  <section class="card" aria-labelledby="weight-history-heading">
+    <div class="section-heading"><h2 id="weight-history-heading">Weight history</h2><p class="hint" id="weight-history-count">0 readings</p></div>
+    <p class="empty" id="weight-history-empty">No measurements yet. Your dated readings will appear here.</p>
+    <div id="delete-box" role="group" aria-labelledby="delete-question" hidden><p id="delete-question"></p><p class="hint">This removes the reading from your chart and syncs the deletion. You can add a corrected reading afterward.</p><div class="btnrow"><button id="delete-confirm" type="button">Delete reading</button><button id="delete-cancel" type="button" class="ghost">Keep reading</button></div></div>
+    <div class="table-scroll"><table id="weight-table" hidden><caption>Original entries and their equivalent in pounds. Charts use daily averages.</caption><thead><tr><th scope="col">Date</th><th scope="col">Entered</th><th scope="col">Pounds</th><th scope="col">Actions</th></tr></thead><tbody id="weight-history-body"></tbody></table></div>
+  </section>
+  <div class="sync-strip"><p id="workout-status" role="status" aria-live="polite">Workouts &amp; sleep: connect GitHub to sync.</p><a class="hint" href="#vault-settings">Connection settings</a></div>
+  <p class="hint">On your watch, tap <b>Sync to vault</b>. Then tap <b>Sync dashboard</b> here to retrieve workouts and sleep.</p>
 
-  <section class="card">
+  <details class="tools" id="qr-import"><summary>Data QR · backup import</summary><section class="card">
     <h2><b>Import</b> from watch QR</h2>
     <details class="help">
       <summary>How to get the data here</summary>
@@ -186,23 +222,24 @@
       <div class="msg warn" id="cammsg">Point the camera at the watch QR</div>
       <div class="btnrow"><button id="camdone" class="ghost">Done scanning</button></div>
     </div>
-    <textarea id="pastebox" placeholder="SCRATCH1|p1/1|0831,leg-press,4,180,132,6,0,74,410;0831,SLEEP,74,432,96"></textarea>
+    <label class="hint" for="pastebox">Paste a Scratch QR export</label><textarea id="pastebox" placeholder="SCRATCH1|p1/1|…"></textarea>
     <div class="btnrow">
       <button id="camerabtn">Scan with camera</button>
       <button id="parsebtn" class="ghost">Read paste</button>
       <button id="savebtn" hidden>Save 0 new</button>
     </div>
     <div class="msg" id="parsemsg" hidden></div>
-  </section>
+  </section></details>
 
+  <div class="journal-grid">
   <section class="card">
     <h2><b>Log</b> — recent sessions</h2>
-    <div id="logview"><p class="empty">Nothing yet. Scan your first QR export above.</p></div>
+    <div id="logview"><p class="empty">No sessions yet. Sync your watch, then sync this dashboard.</p></div>
   </section>
 
   <section class="card">
     <h2><b>Trends</b> — load over time</h2>
-    <select id="exselect" hidden></select>
+    <label class="hint" for="exselect">Weighted exercise</label><select id="exselect" hidden></select>
     <div class="chartbox" id="loadchart"></div>
     <div class="statline" id="loadstats"></div>
     <p class="empty" id="trendempty">Charts appear once a weighted exercise has two or more logged sessions.</p>
@@ -211,33 +248,40 @@
   <section class="card">
     <h2><b>Sleep</b> — last 14 nights</h2>
     <div class="chartbox" id="sleepchart"></div>
-    <p class="empty" id="sleepempty">No sleep records yet — the watch logs one per morning automatically.</p>
+    <p class="empty" id="sleepempty">No sleep records yet. Open Scratch on your watch, then sync.</p>
   </section>
 
   <section class="card">
     <h2><b>Requests</b> — program changes for Claude</h2>
     <p class="hint">Write it here, sync sends it to the vault, Claude reads it next session and updates the watch app.</p>
-    <textarea id="notebox" placeholder="e.g. swap hamstring curls for something else, my machine is broken"></textarea>
+    <label class="hint" for="notebox">Request or training note</label><textarea id="notebox" placeholder="e.g. the hamstring curl machine is unavailable"></textarea>
     <div class="btnrow"><button id="notebtn">Log request</button></div>
     <div class="msg" id="notemsg" hidden></div>
     <div id="notelist" style="margin-top:14px"></div>
   </section>
+  </div>
 
-  <section class="card">
+  <details class="tools" id="vault-settings"><summary>GitHub connection &amp; sync</summary><section class="card">
     <h2><b>Vault sync</b> — GitHub</h2>
-    <p class="hint">Paste your GitHub token once. It stays on this phone only — never in any code or repo. It lets the app write your log into the private vault where Claude reads it. Heads up: iPhone keeps Safari and the home-screen app in separate storage, so save the token in each once — the vault keeps both in sync after that.</p>
+    <p class="hint">Your token is stored in this browser and sent only to GitHub to read and write your private vault. It is never included in the public dashboard code. Use a fine-grained token with Contents read/write access to your hq-vault repository. Safari and the installed home-screen app may need their own saved token.</p>
+    <label class="hint" for="tokenbox">GitHub token</label>
     <input type="password" id="tokenbox" placeholder="github_pat_..." autocomplete="off">
     <div class="btnrow">
       <button id="tokensave">Save token</button>
       <button id="syncbtn" class="ghost">Sync now</button>
     </div>
     <div class="msg" id="syncmsg" hidden></div>
-  </section>
+  </section></details>
+  <details class="tools"><summary>What can this dashboard see?</summary><ul><li><b>Available now:</b> Scratch workouts, lifting loads, workout heart-rate summaries, pain notes, recorded sleep and your manual body-weight entries.</li><li><b>Possible with a future watch update:</b> daily steps, calorie counters, standing, resting heart rate, sleep stages, blood oxygen, stress and PAI. These are not being collected here yet.</li><li><b>Not currently connected:</b> HRV and Readiness. These values are not available through a verified connection to Scratch.</li></ul><p class="hint">Readings are wearable observations. This dashboard does not change your rehabilitation routine.</p></details>
+  </main>
 
   <p class="savestate" id="savestate"><span class="dot a">&#9679;</span> <span id="savestatetext">On this phone only — add your GitHub token above to sync to the vault</span></p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="./weights.js"></script>
+<script src="./weight-sync.js"></script>
+<script src="./dashboard.js"></script>
 <script>
 (function () {
   "use strict";
@@ -271,8 +315,7 @@
   };
   var START_DATE = "2026-08-28";
 
-  // Vault sync target: the private repo Claude reads. The token never leaves
-  // this device (localStorage); the public app repo carries no secrets.
+  // Token stays in localStorage and is transmitted only to GitHub for private sync.
   var GH_OWNER = "garretlking1-commits", GH_REPO = "hq-vault",
       GH_PATH = "projects/zepp-bip6/data/companion-log.json", GH_BRANCH = "main";
   var GH_API = "https://api.github.com/repos/" + GH_OWNER + "/" + GH_REPO + "/contents/" + GH_PATH;
@@ -282,6 +325,7 @@
   var state = { entries: [], notes: [], updated: "" };
   var pending = [];
   var syncStatus = "local"; // local | ok | fail | busy
+  var dashboard = null;
 
   function $(id) { return document.getElementById(id); }
   function exName(id) { return EX_NAMES[id] || id; }
@@ -533,7 +577,7 @@
   function renderLog() {
     var box = $("logview");
     var real = state.entries.filter(function (e) { return e.exId !== "test-5s"; });
-    if (real.length === 0) { box.innerHTML = '<p class="empty">Nothing yet. Scan your first QR export above.</p>'; return; }
+    if (real.length === 0) { box.innerHTML = '<p class="empty">No sessions yet. Sync Scratch on your watch, then tap Sync dashboard here.</p>'; return; }
 
     var byDate = {};
     real.forEach(function (e) { (byDate[e.date] = byDate[e.date] || []).push(e); });
@@ -714,6 +758,7 @@
   }
 
   function renderSaveState() {
+    if (dashboard) dashboard.refresh();
     var el = $("savestate");
     var dot = el.querySelector(".dot");
     var txt = $("savestatetext");
@@ -863,13 +908,13 @@
   $("tokensave").addEventListener("click", function () {
     var t = $("tokenbox").value.trim();
     if (!t) { showMsg($("syncmsg"), "Paste the token first.", "warn"); return; }
-    try { localStorage.setItem(LS_TOKEN, t); } catch (e) {}
+    try { localStorage.setItem(LS_TOKEN, t); } catch (e) { showMsg($("syncmsg"), "Could not store this token on this phone. Check browser storage and try again.", "err"); return; }
     $("tokenbox").value = "";
     $("tokenbox").placeholder = "token saved - paste a new one to replace";
-    syncNow(false);
+    if (dashboard) dashboard.syncAll(); else syncNow(false);
   });
 
-  $("syncbtn").addEventListener("click", function () { syncNow(false); });
+  $("syncbtn").addEventListener("click", function () { if (dashboard) dashboard.syncAll(); else syncNow(false); });
   $("exselect").addEventListener("change", function () { drawLoadChart(this.value); });
 
   // Opened from a watch-QR scan: the payload rides in the URL fragment.
@@ -879,6 +924,7 @@
     try { h = decodeURIComponent(location.hash || ""); } catch (e) { h = location.hash || ""; }
     var i = h.indexOf("SCRATCH1|");
     if (i === -1) return;
+    var importPanel = $("qr-import"); if (importPanel) importPanel.open = true;
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
     var res = parsePaste(h.slice(i));
     if (res.entries.length === 0) return;
@@ -894,10 +940,20 @@
 
   // ---------- boot ----------
   loadState();
+  if (window.ScratchDashboard && window.ScratchWeightSync) {
+    dashboard = window.ScratchDashboard.init({
+      getEntries: function () { return state.entries; }, getToken: getToken,
+      syncWorkouts: function () { return syncNow(false); },
+      getWorkoutStatus: function () {
+        var last = null; try { last = localStorage.getItem(LS_SYNC); } catch (e) {}
+        return { status: syncStatus, lastSync: last };
+      }
+    });
+  }
   if (getToken()) $("tokenbox").placeholder = "token saved - paste a new one to replace";
   renderAll();
   importFromHash();
-  syncNow(true);
+  if (dashboard) dashboard.syncAll(); else syncNow(true);
 
   // A camera scan can land in an ALREADY-OPEN tab (iOS reuses it) — then only
   // the URL fragment changes and no reload happens. Catch it here too.

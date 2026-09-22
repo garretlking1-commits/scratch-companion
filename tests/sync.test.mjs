@@ -204,6 +204,6 @@ test("complete inline app and worker parse; refreshed copy has a visible version
   new vm.Script(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
   const worker = fs.readFileSync(new URL("../sw.js", import.meta.url), "utf8");
   new vm.Script(worker);
-  assert.match(html, /Sync 1\.0\.18/);
-  assert.match(worker, /scratch-v2-sync-1\.0\.18/);
+  assert.match(html, /Dashboard 1\.1\.0/);
+  assert.match(worker, /scratch-v3-dashboard-1\.1\.0/);
 });
