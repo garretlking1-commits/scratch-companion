@@ -113,3 +113,7 @@ button { min-height:44px; }
 #analytics-status[data-state="error"] { color:#f5b78e; }
 .analytics-detail table { font-size:12px; }
 @media(max-width:700px) { .analytics-grid { grid-template-columns:1fr; }.analytics-card { padding:12px; } }
+
+#bike-chart svg { display:block;width:100%;height:auto;margin:16px 0; }
+#bike-level-filter { max-width:260px; }
+#bike-history table { font-size:13px; }

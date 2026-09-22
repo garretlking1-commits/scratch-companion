@@ -23,6 +23,7 @@
     const journal = options.journalStore || (root.ScratchAnalyticsStore && root.ScratchAnalyticsStore.create({storage:root.localStorage,fetch:root.fetch.bind(root),getToken:options.getToken}));
     const analytics = journal && root.ScratchAnalyticsView ? root.ScratchAnalyticsView.init({document:doc,store:journal,getWeights:()=>tracker.snapshot().data,getHealth:()=>health?health.snapshot().data:{days:[]},getEntries:options.getEntries}) : null;
     if (analytics && health) health.subscribe(()=>analytics.refresh());
+    const bike = root.ScratchBikeView ? root.ScratchBikeView.init({document:doc,getEntries:options.getEntries}) : null;
     function text(id, value) { $(id).textContent = value; }
     function message(value, error = false) {
       text("weight-message", value); $("weight-message").hidden = !value;
@@ -127,6 +128,7 @@
     function refresh() {
       const snapshot=tracker.snapshot(); renderOverview(snapshot.data);renderChart(snapshot.data);renderHistory(snapshot.data);renderStatus(snapshot);
       if(analytics)analytics.refresh();
+      if(bike)bike.refresh();
     }
     async function syncWeights() { await tracker.sync(); refresh(); }
     async function syncAll() {

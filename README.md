@@ -92,3 +92,12 @@ Older workout records remain available but cannot supply missing actual reps or 
 Verification: Node tests cover formula boundaries, missing/stale readings, corrections, private
 GitHub merge/conflict/error behavior, watch transport and journal controls. Browser checks use
 synthetic local data. Physical 1.0.21 watch entry/permission/sync validation remains a user checkpoint.
+## Bike comparison (1.4.0)
+
+Scratch 1.0.22 adds optional reported bike resistance level, selected target duration and active
+recorded duration, plus seconds below/within/above the configured heart-rate range and seconds
+with unknown HR. The dashboard shows dated ride history and average HR over time, with a
+reported-level filter. Missing resistance is not inferred from effort or load. Compare the same
+machine with similar duration and cadence; machine level numbers are not universal power units.
+Partial rides remain labeled. Scratch's recorded duration does not include time after the app
+has stopped running. A software checkpoint is not continued background recording.
