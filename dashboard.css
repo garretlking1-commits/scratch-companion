@@ -96,3 +96,20 @@ button { min-height:44px; }
 #health-date { max-width:240px; }
 #health-status[data-state="error"],.health-warning { color:#f5b78e; }
 @media(max-width:700px) { .health-grid { grid-template-columns:1fr; }.health-card { padding:12px; } }
+.analytics-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px; }
+.analytics-card { min-width:0;border:1px solid var(--line);border-radius:8px;padding:16px;overflow-wrap:anywhere; }
+.analytics-card h3 { color:var(--gold);font-size:20px;margin:0 0 12px; }
+.analytics-card p { line-height:1.5;font-size:14px; }
+.analytics-card[data-state="insufficient"] h3 { color:var(--muted); }
+.analytics-card summary,.analytics-inputs>summary { cursor:pointer;min-height:44px;padding:10px 0; }
+.analytics-card details p { color:var(--muted);font-size:12px; }
+.analytics-form { min-width:0; }
+.analytics-form label { display:block;margin:12px 0 5px;font-size:13px; }
+.analytics-form input { width:100%;min-width:0;min-height:44px;padding:10px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);font:16px var(--mono); }
+.analytics-form input[type="checkbox"] { width:22px;min-height:22px;vertical-align:middle; }
+.analytics-form button { margin:12px 8px 8px 0; }
+#journal-delete-box { border:1px solid var(--gold);padding:14px;margin:12px 0; }
+#journal-history button { margin-right:8px; }
+#analytics-status[data-state="error"] { color:#f5b78e; }
+.analytics-detail table { font-size:12px; }
+@media(max-width:700px) { .analytics-grid { grid-template-columns:1fr; }.analytics-card { padding:12px; } }

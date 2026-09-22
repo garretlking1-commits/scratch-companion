@@ -20,6 +20,9 @@
     });
     const health = options.healthReader || (root.ScratchHealthData && root.ScratchHealthData.createReader({storage:root.localStorage,fetch:root.fetch.bind(root),getToken:options.getToken}));
     if (health && root.ScratchHealthView) root.ScratchHealthView.init({document:doc,reader:health});
+    const journal = options.journalStore || (root.ScratchAnalyticsStore && root.ScratchAnalyticsStore.create({storage:root.localStorage,fetch:root.fetch.bind(root),getToken:options.getToken}));
+    const analytics = journal && root.ScratchAnalyticsView ? root.ScratchAnalyticsView.init({document:doc,store:journal,getWeights:()=>tracker.snapshot().data,getHealth:()=>health?health.snapshot().data:{days:[]},getEntries:options.getEntries}) : null;
+    if (analytics && health) health.subscribe(()=>analytics.refresh());
     function text(id, value) { $(id).textContent = value; }
     function message(value, error = false) {
       text("weight-message", value); $("weight-message").hidden = !value;
@@ -123,11 +126,12 @@
     }
     function refresh() {
       const snapshot=tracker.snapshot(); renderOverview(snapshot.data);renderChart(snapshot.data);renderHistory(snapshot.data);renderStatus(snapshot);
+      if(analytics)analytics.refresh();
     }
     async function syncWeights() { await tracker.sync(); refresh(); }
     async function syncAll() {
       $("dashboard-sync").disabled=true;
-      try { await Promise.allSettled([options.syncWorkouts(),syncWeights(),health ? health.sync() : Promise.resolve()]); }
+      try { await Promise.allSettled([options.syncWorkouts(),syncWeights(),health ? health.sync() : Promise.resolve(),journal ? journal.sync() : Promise.resolve()]); }
       finally { $("dashboard-sync").disabled=false;refresh(); }
     }
     $("weight-form").addEventListener("submit",async event=>{
