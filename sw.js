@@ -1,7 +1,7 @@
 // Network-first cache: the app always tries the live version, and falls back
 // to the last cached copy when offline (e.g. at the gym with no signal).
 // GitHub API calls are never cached — sync must always be live.
-var CACHE = "scratch-v6-dashboard-1.4.0";
+var CACHE = "scratch-v7-dashboard-1.5.0";
 
 self.addEventListener("install", function (e) {
   e.waitUntil(

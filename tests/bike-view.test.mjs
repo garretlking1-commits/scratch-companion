@@ -38,6 +38,15 @@ const ride = (date, hr = 125, level = 4, id = date) => ({
     },
   },
 });
+test('distance retains units, normalizes speed, and leaves missing distance unknown',()=>{
+ const a=ride('2026-09-25'),b=ride('2026-09-26'),c=ride('2026-09-24');
+ a.watch.bikeDistance=5;a.watch.bikeDistanceUnit='mi';
+ b.watch.bikeDistance=8.04672;b.watch.bikeDistanceUnit='km';
+ const rows=load().extract([a,b,c]);
+ assert.equal(rows[0].distance,null);assert.equal(rows[0].mph,null);
+ assert.equal(rows[1].distance,5);assert.equal(rows[1].mph,30);
+ assert.ok(Math.abs(rows[2].mph-30)<0.00001);
+});
 class Element {
   constructor(tag) {
     this.tagName = tag;

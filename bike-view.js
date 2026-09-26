@@ -65,6 +65,8 @@
         workSec,
         minutes: workSec / 60,
         level: number(watch.bikeResistanceLevel, 0, 1000),
+        distance: ['mi', 'km'].includes(watch.bikeDistanceUnit) ? number(watch.bikeDistance, 0, 1000) : null,
+        distanceUnit: watch.bikeDistanceUnit,
         hrAvg: number(entry.hrAvg, 1, 300),
         coverage,
         inSec,
@@ -72,6 +74,8 @@
         hi,
         partial: watch.partial === true,
       };
+      row.mph = row.distance === null || workSec <= 0 ? null :
+        row.distance * (row.distanceUnit === 'km' ? 1 / 1.609344 : 1) / (workSec / 3600);
       const keys = [];
       if (typeof watch.sessionId === "string" && watch.sessionId)
         keys.push("session:" + watch.sessionId);
@@ -128,6 +132,8 @@
         "Date / time",
         "Actual minutes",
         "Resistance level",
+        "Distance",
+        "Average mph",
         "Average HR",
         "Zone coverage",
         "Record",
@@ -154,6 +160,8 @@
             row.date + " " + time,
             fmt(row.minutes),
             row.level === null ? "Unknown" : fmt(row.level),
+            row.distance === null ? "Unknown" : fmt(row.distance) + ' ' + row.distanceUnit,
+            row.mph === null ? "Unknown" : fmt(row.mph),
             row.hrAvg === null ? "Unknown" : fmt(row.hrAvg) + " bpm",
             row.coverage === null
               ? "Unknown"
