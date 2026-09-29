@@ -1,12 +1,12 @@
 // Network-first cache: the app always tries the live version, and falls back
 // to the last cached copy when offline (e.g. at the gym with no signal).
 // GitHub API calls are never cached — sync must always be live.
-var CACHE = "scratch-v8-dashboard-1.6.0";
+var CACHE = "scratch-v9-dashboard-1.7.0";
 
 self.addEventListener("install", function (e) {
   e.waitUntil(
     caches.open(CACHE).then(function (c) {
-      return c.addAll(["./", "./index.html", "./manifest.webmanifest", "./weights.js", "./weight-sync.js", "./health-schema.js", "./health-data.js", "./health-view.js", "./analytics-math.js", "./analytics-store.js", "./analytics-view.js", "./bike-view.js", "./accountability.js", "./performance-goals.js", "./dashboard.js", "./dashboard.css"]);
+      return c.addAll(["./", "./index.html", "./manifest.webmanifest", "./weights.js", "./weight-sync.js", "./health-schema.js", "./health-data.js", "./health-view.js", "./analytics-math.js", "./analytics-store.js", "./analytics-view.js", "./bike-view.js", "./accountability.js", "./performance-goals.js", "./routine-control.js", "./dashboard.js", "./dashboard.css"]);
     }).then(function () { return self.skipWaiting(); })
   );
 });

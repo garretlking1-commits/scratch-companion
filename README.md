@@ -117,3 +117,14 @@ manually reported bike distance. Optional strength goals require a logged exerci
 target pounds, and actual reps. Bike distance goals use miles, converting reported km.
 Goals sync in the same private journal. The dashboard reports recorded progress; it does
 not set a rehabilitation schedule or imply clearance to perform an exercise.
+
+## Phone routine control (1.7.0)
+
+Open **Change your watch routine**, load the private `program-current.json`, choose a
+weekday and select from the routine's existing exercise catalog. Saving writes only
+that day's schedule to the private vault with a GitHub SHA check. Another change
+made in the meantime causes a conflict message and requires a reload, so an older
+phone copy cannot silently overwrite a newer routine. Existing exercise definitions
+and the watch's recovery-phase filter remain in force. Saving on the phone is not a
+watch install: tap **Sync to vault** in Scratch to download the revision. The phone
+routine and the dashboard commitment are separate choices.

@@ -173,7 +173,7 @@
     <div class="wordmark">Scratch <span>HQ</span></div>
     <div class="weekchip" id="weekchip">Wk —</div>
   </header>
-  <p class="version" aria-label="Companion version">Dashboard 1.6.0</p>
+  <p class="version" aria-label="Companion version">Dashboard 1.7.0</p>
   <p class="tagline">Your training, sleep and weight. One day at a time.</p>
   <noscript><p class="noscript">Enable JavaScript to view your journal and save measurements.</p></noscript>
   <main>
@@ -208,6 +208,17 @@
       <label for="performance-reps">Minimum actual reps per set (strength)</label><input id="performance-reps" type="number" min="1" max="50" step="1" inputmode="numeric" value="8">
       <button type="submit">Save goal</button></form></details>
     <p id="performance-message" class="msg" role="status" aria-live="polite" hidden></p>
+  </section>
+  <section class="card routine-control" aria-labelledby="routine-heading">
+    <h2 id="routine-heading">Change your watch routine</h2>
+    <p class="hint">Edit the exercises on one day using your existing watch catalog. Save privately here, then tap <b>Sync to vault</b> in Scratch to download the change. The watch still applies its recovery-phase movement filter.</p>
+    <button id="routine-load" type="button" class="ghost">Load current routine</button>
+    <p id="routine-revision" class="hint">Load your private routine before editing.</p>
+    <form id="routine-form"><label for="routine-day">Workout day</label><select id="routine-day"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select>
+      <fieldset><legend>Exercises for this day</legend><div id="routine-exercises"></div></fieldset>
+      <button id="routine-save" type="submit" disabled>Save day to private vault</button>
+    </form>
+    <p id="routine-message" class="msg" role="status" aria-live="polite" hidden></p>
   </section>
   <section class="card" aria-labelledby="health-heading">
     <div class="section-heading"><h2 id="health-heading">From your watch</h2><button id="health-sync" class="ghost" type="button">Refresh watch data</button></div>
@@ -365,6 +376,7 @@
 <script src="./bike-view.js"></script>
 <script src="./accountability.js"></script>
 <script src="./performance-goals.js"></script>
+<script src="./routine-control.js"></script>
 <script src="./dashboard.js"></script>
 <script>
 (function () {
@@ -1034,6 +1046,7 @@
       }
     });
   }
+  if (window.ScratchRoutineControl) window.ScratchRoutineControl.init({getToken:getToken,getExerciseName:exName});
   if (getToken()) $("tokenbox").placeholder = "token saved - paste a new one to replace";
   renderAll();
   importFromHash();

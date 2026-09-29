@@ -33,6 +33,14 @@ header { padding-top:30px; }
 .performance-goal p { margin:8px 0; }
 .performance-goal progress { display:block;width:100%;height:13px;accent-color:var(--gold); }
 .performance-goal button { margin-top:8px; }
+.routine-control { margin-bottom:18px; }
+.routine-control form { max-width:700px; }
+.routine-control label { display:block;margin:12px 0 6px; }
+.routine-control select { min-height:44px; }
+.routine-control fieldset { border:1px solid var(--line);border-radius:6px;margin:8px 0 16px; }
+#routine-exercises { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 14px; }
+#routine-exercises label { min-height:44px;display:flex;align-items:center;gap:8px;margin:0; }
+#routine-exercises input { width:20px;height:20px;flex:none; }
 .metric-label { display:block;font:12px var(--body);color:var(--muted);margin-bottom:7px; }
 .metric-value { font:600 27px var(--disp);line-height:1.1;letter-spacing:.3px; }
 .metric-detail { display:block;font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px; }
@@ -94,6 +102,7 @@ button { min-height:44px; }
  .overview article:nth-child(4) { border-top:1px solid var(--line); }
  .metric-value { font-size:25px; }
  .accountability-days { grid-template-columns:repeat(4,minmax(0,1fr)); }
+ #routine-exercises { grid-template-columns:1fr; }
  .dashboard-main,.journal-grid { grid-template-columns:1fr;gap:0; }
  .journal-heading { margin-top:16px; }
  .journal-heading h1 { font-size:28px; }
