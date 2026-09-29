@@ -24,6 +24,52 @@
     const analytics = journal && root.ScratchAnalyticsView ? root.ScratchAnalyticsView.init({document:doc,store:journal,getWeights:()=>tracker.snapshot().data,getHealth:()=>health?health.snapshot().data:{days:[]},getEntries:options.getEntries}) : null;
     if (analytics && health) health.subscribe(()=>analytics.refresh());
     const bike = root.ScratchBikeView ? root.ScratchBikeView.init({document:doc,getEntries:options.getEntries}) : null;
+    function renderAccountability() {
+      if (!journal || !root.ScratchAccountability) return;
+      const plan = root.ScratchAccountability.week(options.getEntries(), journal.snapshot().data.settings, M.localDate());
+      text('accountability-count', plan.configured ? plan.completed + ' / ' + plan.target + ' days' : 'Set your workout days');
+      text('accountability-summary', plan.configured ?
+        (plan.target===0 ? 'Your chosen days begin next week.' : plan.completed >= plan.target ? 'Weekly target reached.' : (plan.target - plan.completed) + ' workout day' + (plan.target - plan.completed === 1 ? '' : 's') + ' to reach your target.') :
+        'Choose the days you plan to train. A day counts after Scratch syncs at least one finished exercise or ride.');
+      const holder = $('accountability-days'); holder.replaceChildren();
+      plan.days.forEach(day => {
+        const cell = doc.createElement('div'); cell.className = 'accountability-day'; cell.dataset.state = day.status;
+        cell.textContent = day.name + ' ' + day.date.slice(5) + ' · ' + (day.completed ? 'Done' : day.planned ? ({missed:'Missed',today:'Today',upcoming:'Planned'}[day.status]) : 'Open');
+        holder.appendChild(cell);
+      });
+      text('accountability-missed', plan.missed.length ? 'Missed: ' + plan.missed.map(day => day.name + ' ' + day.date.slice(5)).join(', ') : (plan.configured ? 'No missed planned days this week.' : ''));
+    }
+    function renderGoals() {
+      if (!journal || !root.ScratchPerformanceGoals) return;
+      const goals=journal.snapshot().data.settings.performanceGoals || [];
+      const baseline=root.ScratchPerformanceGoals.baselines(options.getEntries());
+      const base=$('performance-baseline');base.replaceChildren();
+      const heading=doc.createElement('h3');heading.textContent='Your recorded baseline';base.appendChild(heading);
+      if (!baseline.strength.length && !baseline.bike) {const p=doc.createElement('p');p.textContent='No qualifying strength sets or reported bike distances yet. Sync a completed workout to start your baseline.';base.appendChild(p);}
+      baseline.strength.forEach(row=>{const p=doc.createElement('p');p.textContent=(options.getExerciseName?options.getExerciseName(row.exerciseId):row.exerciseId)+': '+row.load+' lb × '+row.reps+' actual reps · '+row.date;base.appendChild(p);});
+      if(baseline.bike){const p=doc.createElement('p');p.textContent='Bike: '+Number(baseline.bike.miles.toFixed(1))+' miles · '+baseline.bike.date;base.appendChild(p);}
+      const holder=$('performance-list');holder.replaceChildren();
+      if (!goals.length) {const empty=doc.createElement('p');empty.textContent='No goals saved yet. Add a target below to start tracking progress.';holder.appendChild(empty);}
+      goals.forEach(goal=>{
+        const result=root.ScratchPerformanceGoals.progress(options.getEntries(),goal);
+        const card=doc.createElement('div');card.className='performance-goal';
+        const label=doc.createElement('strong');label.textContent=goal.kind==='strength' ?
+          ((options.getExerciseName ? options.getExerciseName(goal.exerciseId) : goal.exerciseId)+' · '+goal.target+' lb for '+goal.reps+' reps') :
+          ('Bike · '+goal.target+' miles');card.appendChild(label);
+        const state=doc.createElement('p');state.textContent=result.best===null ? 'No matching completed record yet.' :
+          (result.reached ? 'Goal reached · ' : result.percent+'% · ')+'Best: '+Number(result.best.toFixed(1))+(goal.kind==='strength'?' lb':' miles')+' on '+result.bestDate;
+        card.appendChild(state);
+        const meter=doc.createElement('progress');meter.max=100;meter.value=result.percent || 0;meter.setAttribute('aria-label','Progress toward '+label.textContent);card.appendChild(meter);
+        const remove=doc.createElement('button');remove.type='button';remove.className='ghost';remove.textContent='Remove goal';
+        remove.addEventListener('click',async()=>{try{journal.saveSettings({performanceGoals:goals.filter(item=>item.id!==goal.id)});await journal.sync();renderGoals();}catch(error){text('performance-message',error.message||'Could not remove goal.');$('performance-message').hidden=false;}});
+        card.appendChild(remove);holder.appendChild(card);
+      });
+      const select=$('performance-exercise'),current=select.value;
+      const ids=[...new Set(options.getEntries().filter(entry=>entry&&entry.type==='workout'&&typeof entry.exId==='string'&&/^[a-z0-9-]{1,60}$/.test(entry.exId)&&entry.exId!=='test-5s'&&entry.exId!=='zone2-bike'&&entry.exId!=='sat-bike').map(entry=>entry.exId))].sort();
+      select.replaceChildren();ids.forEach(id=>{const option=doc.createElement('option');option.value=id;option.textContent=options.getExerciseName?options.getExerciseName(id):id;select.appendChild(option);});
+      if(ids.includes(current))select.value=current;
+    }
+    if (journal) journal.subscribe(()=>{renderAccountability();renderGoals();});
     function text(id, value) { $(id).textContent = value; }
     function message(value, error = false) {
       text("weight-message", value); $("weight-message").hidden = !value;
@@ -129,6 +175,8 @@
       const snapshot=tracker.snapshot(); renderOverview(snapshot.data);renderChart(snapshot.data);renderHistory(snapshot.data);renderStatus(snapshot);
       if(analytics)analytics.refresh();
       if(bike)bike.refresh();
+      renderAccountability();
+      renderGoals();
     }
     async function syncWeights() { await tracker.sync(); refresh(); }
     async function syncAll() {
@@ -152,6 +200,44 @@
     });
     $("weight-sync").addEventListener("click",syncWeights);
     $("dashboard-sync").addEventListener("click",syncAll);
+    if (journal) {
+      const checks = [...doc.querySelectorAll('input[name="training-day"]')];
+      const savedPlans=journal.snapshot().data.settings.trainingPlans || [];
+      (savedPlans.length?savedPlans[savedPlans.length-1].weekdays:[]).forEach(day => { const box=checks.find(item=>Number(item.value)===day); if(box)box.checked=true; });
+      $('accountability-form').addEventListener('submit', async event => {
+        event.preventDefault();
+        const selected = checks.filter(item=>item.checked).map(item=>Number(item.value)).sort((a,b)=>a-b);
+        try {
+          if (!selected.length) throw Error('Choose at least one workout day.');
+          const old=journal.snapshot().data.settings.trainingPlans || [],today=M.localDate();
+          journal.saveSettings({trainingPlans:[...old.filter(plan=>plan.from<today),{from:today,weekdays:selected}]});
+          text('accountability-message','Weekly plan saved on this phone.'); $('accountability-message').hidden=false;
+          renderAccountability(); await journal.sync(); renderAccountability();
+        } catch(error) {text('accountability-message',error.message||'Could not save the plan.'); $('accountability-message').hidden=false;}
+      });
+      $('performance-kind').addEventListener('change',()=>{
+        const strength=$('performance-kind').value==='strength';
+        $('performance-exercise').disabled=!strength;$('performance-reps').disabled=!strength;
+        $('performance-target').max=strength?'5000':'500';
+        $('performance-target').min=strength?'1':'0.1';
+        $('performance-target').step=strength?'1':'0.1';
+      });
+      $('performance-form').addEventListener('submit',async event=>{
+        event.preventDefault();
+        try {
+          const kind=$('performance-kind').value,target=Number($('performance-target').value);
+          const exerciseId=$('performance-exercise').value,reps=Number($('performance-reps').value);
+          if (!Number.isFinite(target) || target<=0) throw Error('Enter a target.');
+          if (kind==='strength' && (!exerciseId || !Number.isInteger(reps) || reps<1 || reps>50 || !Number.isInteger(target)))
+            throw Error('Choose a logged exercise, whole-pound target, and rep count.');
+          const goal=kind==='strength' ? {id:'strength:'+exerciseId+':'+reps,kind,exerciseId,target,reps} : {id:'bike-distance',kind,target};
+          const old=journal.snapshot().data.settings.performanceGoals || [];
+          journal.saveSettings({performanceGoals:[...old.filter(item=>item.id!==goal.id),goal]});
+          text('performance-message','Goal saved on this phone.');$('performance-message').hidden=false;
+          await journal.sync();renderGoals();
+        } catch(error) {text('performance-message',error.message||'Could not save goal.');$('performance-message').hidden=false;}
+      });
+    }
     resetForm();refresh();
     return {refresh,syncAll,syncWeights,edit,requestDelete};
   }

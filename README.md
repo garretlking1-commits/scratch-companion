@@ -101,3 +101,19 @@ reported-level filter. Missing resistance is not inferred from effort or load. C
 machine with similar duration and cadence; machine level numbers are not universal power units.
 Partial rides remain labeled. Scratch's recorded duration does not include time after the app
 has stopped running. A software checkpoint is not continued background recording.
+
+## Weekly commitment and performance goals (1.6.0)
+
+Choose planned workout weekdays on the dashboard. The current Monday–Sunday week shows
+days with at least one completed Scratch exercise or ride, upcoming planned days, and
+planned days missed after they end. A plan starts when saved, so earlier days are not
+marked missed. Dated plan changes retain earlier missed days.
+The first week's target includes only planned dates from that day forward. Plan settings
+sync in the existing private `analytics-journal.json` file. No workouts or targets are
+preselected.
+
+The performance section shows baselines from completed sets with actual reps and from
+manually reported bike distance. Optional strength goals require a logged exercise,
+target pounds, and actual reps. Bike distance goals use miles, converting reported km.
+Goals sync in the same private journal. The dashboard reports recorded progress; it does
+not set a rehabilitation schedule or imply clearance to perform an exercise.

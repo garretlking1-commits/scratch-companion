@@ -173,7 +173,7 @@
     <div class="wordmark">Scratch <span>HQ</span></div>
     <div class="weekchip" id="weekchip">Wk —</div>
   </header>
-  <p class="version" aria-label="Companion version">Dashboard 1.5.0</p>
+  <p class="version" aria-label="Companion version">Dashboard 1.6.0</p>
   <p class="tagline">Your training, sleep and weight. One day at a time.</p>
   <noscript><p class="noscript">Enable JavaScript to view your journal and save measurements.</p></noscript>
   <main>
@@ -181,9 +181,34 @@
   <div class="overview" aria-label="Journal overview">
     <article><span class="metric-label">Latest body weight</span><strong class="metric-value" id="latest-weight">No weigh-ins</strong><span class="metric-detail" id="latest-weight-date">Add your first reading below.</span></article>
     <article><span class="metric-label">Change from first reading</span><strong class="metric-value" id="weight-change">—</strong><span class="metric-detail" id="weight-change-date">Change appears after two readings.</span></article>
-    <article><span class="metric-label">Training this week</span><strong class="metric-value" id="training-days">0 / 7 days</strong><span class="metric-detail" id="training-minutes">Last 7 calendar days</span></article>
+    <article><span class="metric-label">Recorded activity, last 7 days</span><strong class="metric-value" id="training-days">0 / 7 days</strong><span class="metric-detail" id="training-minutes">Includes partial workouts</span></article>
     <article><span class="metric-label">Latest recorded sleep</span><strong class="metric-value" id="latest-sleep">No sleep data</strong><span class="metric-detail" id="latest-sleep-date">Sync to retrieve your watch records.</span></article>
   </div>
+  <section class="card accountability" aria-labelledby="accountability-heading">
+    <div class="section-heading"><h2 id="accountability-heading">This week's commitment</h2><strong id="accountability-count">Set your workout days</strong></div>
+    <p id="accountability-summary" role="status" aria-live="polite">Choose the days you plan to train. A day counts after Scratch syncs at least one finished exercise or ride.</p>
+    <div id="accountability-days" class="accountability-days" aria-label="Planned workout days"></div>
+    <p id="accountability-missed" class="accountability-missed"></p>
+    <details><summary>Choose workout days</summary>
+      <form id="accountability-form"><fieldset><legend>Days you plan to work out each week</legend>
+        <label><input type="checkbox" name="training-day" value="1"> Mon</label><label><input type="checkbox" name="training-day" value="2"> Tue</label><label><input type="checkbox" name="training-day" value="3"> Wed</label><label><input type="checkbox" name="training-day" value="4"> Thu</label><label><input type="checkbox" name="training-day" value="5"> Fri</label><label><input type="checkbox" name="training-day" value="6"> Sat</label><label><input type="checkbox" name="training-day" value="0"> Sun</label>
+      </fieldset><button type="submit">Save weekly plan</button></form>
+      <p class="hint">Changes start today. Missed days appear only after a planned day ends. Partial exercise records do not count.</p>
+    </details><p id="accountability-message" class="msg" role="status" aria-live="polite" hidden></p>
+  </section>
+  <section class="card performance" aria-labelledby="performance-heading">
+    <h2 id="performance-heading">Performance goals</h2>
+    <p class="hint">Set a strength target for an exercise you have logged, or a bike distance target. Progress uses completed watch records and actual reps when a strength goal specifies reps.</p>
+    <div id="performance-baseline" class="performance-baseline"></div>
+    <div id="performance-list"></div>
+    <details><summary>Add or update a goal</summary><form id="performance-form">
+      <label for="performance-kind">Metric</label><select id="performance-kind"><option value="strength">Strength at actual reps</option><option value="bike-distance">Bike distance (miles)</option></select>
+      <label for="performance-exercise">Exercise</label><select id="performance-exercise"></select>
+      <label for="performance-target">Target (lb or miles)</label><input id="performance-target" type="number" min="1" max="5000" step="1" inputmode="decimal" required>
+      <label for="performance-reps">Minimum actual reps per set (strength)</label><input id="performance-reps" type="number" min="1" max="50" step="1" inputmode="numeric" value="8">
+      <button type="submit">Save goal</button></form></details>
+    <p id="performance-message" class="msg" role="status" aria-live="polite" hidden></p>
+  </section>
   <section class="card" aria-labelledby="health-heading">
     <div class="section-heading"><h2 id="health-heading">From your watch</h2><button id="health-sync" class="ghost" type="button">Refresh watch data</button></div>
     <p class="hint">Open Scratch on your watch and tap Sync to vault, with Zepp open on your iPhone. Then refresh here. Readings depend on watch permissions and available measurements.</p>
@@ -338,6 +363,8 @@
 <script src="./analytics-store.js"></script>
 <script src="./analytics-view.js"></script>
 <script src="./bike-view.js"></script>
+<script src="./accountability.js"></script>
+<script src="./performance-goals.js"></script>
 <script src="./dashboard.js"></script>
 <script>
 (function () {
@@ -999,7 +1026,7 @@
   loadState();
   if (window.ScratchDashboard && window.ScratchWeightSync) {
     dashboard = window.ScratchDashboard.init({
-      getEntries: function () { return state.entries; }, getToken: getToken,
+      getEntries: function () { return state.entries; }, getExerciseName: exName, getToken: getToken,
       syncWorkouts: function () { return syncNow(false); },
       getWorkoutStatus: function () {
         var last = null; try { last = localStorage.getItem(LS_SYNC); } catch (e) {}

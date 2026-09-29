@@ -91,6 +91,20 @@ const opts = (s, r) => ({
   getToken: () => " fixture ",
   now: () => new Date(now),
 });
+test("old journal settings migrate and new weekly plans and goals validate", () => {
+  const api=load();
+  const old=api.defaults();
+  delete old.settings.trainingPlans;
+  delete old.settings.performanceGoals;
+  const migrated=api.validate(old);
+  assert.deepEqual(Array.from(migrated.settings.trainingPlans),[]);
+  assert.deepEqual(Array.from(migrated.settings.performanceGoals),[]);
+  const t=api.create(opts(storage(),remote()));
+  t.saveSettings({trainingPlans:[{from:'2026-09-21',weekdays:[1,4]}],performanceGoals:[{id:'strength:leg-press:8',kind:'strength',exerciseId:'leg-press',target:200,reps:8}]});
+  assert.equal(t.snapshot().data.settings.performanceGoals.length,1);
+  assert.throws(()=>t.saveSettings({trainingPlans:[{from:'2026-09-21',weekdays:[1,1]}]}));
+  assert.throws(()=>t.saveSettings({performanceGoals:[{id:'bad',kind:'strength',exerciseId:'leg-press',target:200,reps:0}]}));
+});
 test("defaults create no remote file; blank values stay null and invalid/rest-day values reject", async () => {
   const r = remote(),
     t = load().create(opts(storage(), r));

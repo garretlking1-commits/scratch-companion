@@ -8,6 +8,8 @@
     wakeMinute: 420,
     bedtimeBufferMinutes: 30,
     habitLabel: "Late caffeine",
+    trainingPlans: [],
+    performanceGoals: [],
     updatedAt: null,
   };
   const DAY_FIELDS = [
@@ -106,6 +108,35 @@
     )
       throw Error("Invalid journal settings");
     if (v.updatedAt !== null) iso(v.updatedAt);
+    if (v.trainingPlans !== undefined) {
+      if (!Array.isArray(v.trainingPlans) || v.trainingPlans.length > 100)
+        throw Error("Too many dated training plans.");
+      let prior='';
+      v.trainingPlans.forEach(plan=>{
+        keys(plan,["from","weekdays"]);date(plan.from);
+        if (plan.from<=prior || !Array.isArray(plan.weekdays) || plan.weekdays.length<1 || plan.weekdays.length>7 ||
+          new Set(plan.weekdays).size!==plan.weekdays.length ||
+          plan.weekdays.some(day=>!Number.isInteger(day)||day<0||day>6))
+          throw Error("Choose valid, unique training weekdays.");
+        prior=plan.from;
+      });
+    }
+    if (v.performanceGoals !== undefined) {
+      if (!Array.isArray(v.performanceGoals) || v.performanceGoals.length > 12)
+        throw Error("Too many performance goals.");
+      const ids = new Set();
+      v.performanceGoals.forEach(goal => {
+        keys(goal, ["id", "kind", "exerciseId", "target", "reps"]);
+        if (typeof goal.id !== "string" || !/^[a-z0-9:-]{1,100}$/.test(goal.id) || ids.has(goal.id) ||
+          !["strength", "bike-distance"].includes(goal.kind) ||
+          (goal.kind === "strength" && (typeof goal.exerciseId !== "string" || !/^[a-z0-9-]{1,60}$/.test(goal.exerciseId) ||
+            !Number.isInteger(goal.reps) || goal.reps < 1 || goal.reps > 50 || !Number.isInteger(goal.target) || goal.target < 1 || goal.target > 5000)) ||
+          (goal.kind === "bike-distance" && (goal.exerciseId !== undefined || goal.reps !== undefined ||
+            typeof goal.target !== "number" || !Number.isFinite(goal.target) || goal.target < 0.1 || goal.target > 500)))
+          throw Error("Invalid performance goal.");
+        ids.add(goal.id);
+      });
+    }
     return v;
   }
   function document(days = [], prefs = { ...DEFAULTS }) {
@@ -113,7 +144,7 @@
     return {
       schema: 1,
       days: sorted,
-      settings: { ...prefs },
+      settings: { ...DEFAULTS, ...prefs, trainingPlans: (prefs.trainingPlans || []).map(plan=>({from:plan.from,weekdays:[...plan.weekdays]})), performanceGoals: (prefs.performanceGoals || []).map(goal => ({...goal})) },
       updatedAt: sorted.reduce(
         (last, r) => (!last || r.updatedAt > last ? r.updatedAt : last),
         prefs.updatedAt,
