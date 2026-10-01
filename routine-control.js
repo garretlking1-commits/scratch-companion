@@ -36,17 +36,24 @@
     const request=async(method,body)=>{
       const token=(options.getToken()||'').trim();
       if(!token)throw Error('Add your private vault token in Connection settings first.');
-      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
-      try{return await options.fetch(API+(method==='GET'?'?ref=main':''),{
-        method,cache:'no-store',signal:controller.signal,
-        headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},
-        ...(body?{body:JSON.stringify(body)}:{})
-      });}finally{clearTimeout(timer);}
+      const controller=new AbortController();let timer;
+      try{return await Promise.race([
+        (async()=>{
+          const response=await options.fetch(API+(method==='GET'?'?ref=main':''),{
+            method,cache:'no-store',signal:controller.signal,
+            headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','Content-Type':'application/json'},
+            ...(body?{body:JSON.stringify(body)}:{})
+          });
+          const data=response.ok?await response.json():null;
+          return {ok:response.ok,status:response.status,data};
+        })(),
+        new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('Routine request timed out. Reload before retrying a save.'));},options.timeoutMs||15000);})
+      ]);}finally{clearTimeout(timer);}
     };
     async function load(){
       const response=await request('GET');
       if(!response.ok)throw Error('Could not load routine from the private vault (GitHub '+response.status+').');
-      const body=await response.json();
+      const body=response.data;
       if(typeof body.sha!=='string'||typeof body.content!=='string'||body.content.length>100000)
         throw Error('Invalid routine response.');
       const parsed=validate(decode(body.content));
@@ -62,7 +69,7 @@
       const response=await request('PUT',{message:'Update Scratch weekday routine',branch:'main',sha,content:encode(revised)});
       if(response.status===409||response.status===422)throw Error('The routine changed elsewhere. Reload it before saving.');
       if(!response.ok)throw Error('Routine was not saved (GitHub '+response.status+').');
-      const body=await response.json();
+      const body=response.data;
       if(typeof body.content?.sha!=='string')throw Error('GitHub did not confirm the saved routine. Reload before editing again.');
       sha=body.content.sha;current=revised;
       return JSON.parse(JSON.stringify(current));

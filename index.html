@@ -173,29 +173,50 @@
     <div class="wordmark">Scratch <span>HQ</span></div>
     <div class="weekchip" id="weekchip">Wk —</div>
   </header>
-  <p class="version" aria-label="Companion version">Dashboard 1.7.0</p>
+  <p class="version" aria-label="Companion version">Dashboard 1.8.0</p>
   <p class="tagline">Your training, sleep and weight. One day at a time.</p>
   <noscript><p class="noscript">Enable JavaScript to view your journal and save measurements.</p></noscript>
   <main>
-  <div class="journal-heading"><div><p class="eyebrow">Personal training journal</p><h1>The daily picture</h1></div><button id="dashboard-sync" type="button">Sync dashboard</button></div>
+  <div class="journal-heading"><div><p class="eyebrow">Personal training journal</p><h1>Start where you are</h1></div><button id="dashboard-sync" type="button">Sync dashboard</button></div>
+
+  <section class="card today-card" aria-labelledby="today-heading">
+    <p class="eyebrow" id="today-date">Today</p><h2 id="today-heading">One next step</h2>
+    <p id="today-action" class="today-action">What is one small next step?</p>
+    <p id="today-state" role="status" aria-live="polite"></p>
+    <p id="today-timer" class="today-timer" hidden></p>
+    <div id="today-controls" hidden>
+      <div class="btnrow"><button id="today-start" type="button">Start 10 minutes</button><button id="today-small" class="ghost" type="button">Make it smaller</button></div>
+      <div class="btnrow"><button id="today-minimum" class="ghost" type="button">Small step done</button><button id="today-done" class="ghost" type="button">Action complete</button></div>
+      <button id="today-reset" class="ghost" type="button">Restart from now</button>
+    </div>
+    <button id="today-rest" class="ghost" type="button">Rest today</button>
+    <details id="today-editor"><summary>Choose or change your next step</summary>
+      <form id="today-form"><label for="today-input">One concrete action</label><input id="today-input" maxlength="200" required placeholder="Open my assignment and read the first question">
+        <label for="today-fallback">A smaller version (optional)</label><input id="today-fallback" maxlength="200" placeholder="Open the assignment">
+        <button type="submit">Save next step</button></form>
+    </details>
+    <p id="today-message" role="status" aria-live="polite"></p>
+    <p class="hint">These choices stay on this device. They are your own check-in, separate from watch workout records. No missed-day backlog.</p>
+  </section>
+  <section class="card accountability" aria-labelledby="accountability-heading">
+    <div class="section-heading"><h2 id="accountability-heading">This week's commitment</h2><strong id="accountability-count">Set your workout days</strong></div>
+    <p id="accountability-summary" role="status" aria-live="polite">Choose your planned days. Missing records stay unknown; partial activity counts as a start.</p>
+    <div id="accountability-days" class="accountability-days" aria-label="Planned workout days"></div>
+    <p id="accountability-missed" class="accountability-missed"></p>
+    <details><summary>Choose workout days</summary>
+      <form id="accountability-form"><fieldset><legend>Days you plan to work out each week</legend>
+        <label><input type="checkbox" name="training-day" value="1"> Mon</label><label><input type="checkbox" name="training-day" value="2"> Tue</label><label><input type="checkbox" name="training-day" value="3"> Wed</label><label><input type="checkbox" name="training-day" value="4"> Thu</label><label><input type="checkbox" name="training-day" value="5"> Fri</label><label><input type="checkbox" name="training-day" value="6"> Sat</label><label><input type="checkbox" name="training-day" value="0"> Sun</label>
+      </fieldset><label for="accountability-resume">Resume date for a pause (optional)</label><input id="accountability-resume" type="date"><button type="submit">Save weekly plan</button></form>
+      <p class="hint">Changes start today. Clear every weekday to pause; optionally choose a future date to resume your previous days. Saving replaces any future scheduled plan changes.</p>
+    </details><p id="accountability-message" class="msg" role="status" aria-live="polite" hidden></p>
+  </section>
+  <details class="tools more-view" id="more-view"><summary>History, insights &amp; settings</summary>
   <div class="overview" aria-label="Journal overview">
     <article><span class="metric-label">Latest body weight</span><strong class="metric-value" id="latest-weight">No weigh-ins</strong><span class="metric-detail" id="latest-weight-date">Add your first reading below.</span></article>
     <article><span class="metric-label">Change from first reading</span><strong class="metric-value" id="weight-change">—</strong><span class="metric-detail" id="weight-change-date">Change appears after two readings.</span></article>
     <article><span class="metric-label">Recorded activity, last 7 days</span><strong class="metric-value" id="training-days">0 / 7 days</strong><span class="metric-detail" id="training-minutes">Includes partial workouts</span></article>
     <article><span class="metric-label">Latest recorded sleep</span><strong class="metric-value" id="latest-sleep">No sleep data</strong><span class="metric-detail" id="latest-sleep-date">Sync to retrieve your watch records.</span></article>
   </div>
-  <section class="card accountability" aria-labelledby="accountability-heading">
-    <div class="section-heading"><h2 id="accountability-heading">This week's commitment</h2><strong id="accountability-count">Set your workout days</strong></div>
-    <p id="accountability-summary" role="status" aria-live="polite">Choose the days you plan to train. A day counts after Scratch syncs at least one finished exercise or ride.</p>
-    <div id="accountability-days" class="accountability-days" aria-label="Planned workout days"></div>
-    <p id="accountability-missed" class="accountability-missed"></p>
-    <details><summary>Choose workout days</summary>
-      <form id="accountability-form"><fieldset><legend>Days you plan to work out each week</legend>
-        <label><input type="checkbox" name="training-day" value="1"> Mon</label><label><input type="checkbox" name="training-day" value="2"> Tue</label><label><input type="checkbox" name="training-day" value="3"> Wed</label><label><input type="checkbox" name="training-day" value="4"> Thu</label><label><input type="checkbox" name="training-day" value="5"> Fri</label><label><input type="checkbox" name="training-day" value="6"> Sat</label><label><input type="checkbox" name="training-day" value="0"> Sun</label>
-      </fieldset><button type="submit">Save weekly plan</button></form>
-      <p class="hint">Changes start today. Missed days appear only after a planned day ends. Partial exercise records do not count.</p>
-    </details><p id="accountability-message" class="msg" role="status" aria-live="polite" hidden></p>
-  </section>
   <section class="card performance" aria-labelledby="performance-heading">
     <h2 id="performance-heading">Performance goals</h2>
     <p class="hint">Set a strength target for an exercise you have logged, or a bike distance target. Progress uses completed watch records and actual reps when a strength goal specifies reps.</p>
@@ -339,7 +360,7 @@
 
   <section class="card">
     <h2><b>Requests</b> — program changes for Claude</h2>
-    <p class="hint">Write it here, sync sends it to the vault, Claude reads it next session and updates the watch app.</p>
+    <p class="hint">Save a request to the private vault. It stays pending until an agent reviews it; saving does not change your routine or notify an agent.</p>
     <label class="hint" for="notebox">Request or training note</label><textarea id="notebox" placeholder="e.g. the hamstring curl machine is unavailable"></textarea>
     <div class="btnrow"><button id="notebtn">Log request</button></div>
     <div class="msg" id="notemsg" hidden></div>
@@ -357,14 +378,16 @@
       <button id="syncbtn" class="ghost">Sync now</button>
     </div>
     <div class="msg" id="syncmsg" hidden></div>
+    <div class="btnrow"><button id="backup-download" type="button" class="ghost">Download local backup</button><button id="token-disconnect" type="button" class="ghost">Disconnect this device</button></div>
   </section></details>
   <details class="tools"><summary>What can this dashboard see?</summary><ul><li><b>Available now:</b> Scratch workouts, lifting loads, workout heart-rate summaries, pain notes, recorded sleep and your manual body-weight entries.</li><li><b>With Scratch 1.0.20:</b> available daily steps, calorie counters, standing hours, resting and recorded heart rate, sleep stages and naps, recent blood oxygen, stress, PAI and raw training metrics. Install the update, allow watch permissions and manually sync to collect them.</li><li><b>Not currently connected:</b> HRV and Readiness. These values are not available through a verified connection to Scratch.</li></ul><p class="hint">Readings are wearable observations. This dashboard does not change your rehabilitation routine.</p></details>
+  </details>
   </main>
 
   <p class="savestate" id="savestate"><span class="dot a">&#9679;</span> <span id="savestatetext">On this phone only — add your GitHub token above to sync to the vault</span></p>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="./vendor/jsQR-1.4.0.js" integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx"></script>
 <script src="./weights.js"></script>
 <script src="./weight-sync.js"></script>
 <script src="./health-schema.js"></script>
@@ -377,6 +400,7 @@
 <script src="./accountability.js"></script>
 <script src="./performance-goals.js"></script>
 <script src="./routine-control.js"></script>
+<script src="./today.js"></script>
 <script src="./dashboard.js"></script>
 <script>
 (function () {
@@ -430,21 +454,80 @@
   function getToken() { try { return localStorage.getItem(LS_TOKEN) || ""; } catch (e) { return ""; } }
 
   // ---------- local persistence ----------
+  var storageError = "", lastStoredRaw = null;
   function loadState() {
     try {
-      var raw = JSON.parse(localStorage.getItem(LS_STATE) || "null");
-      if (raw && raw.entries) state = raw;
-    } catch (e) {}
+      var raw = localStorage.getItem(LS_STATE);
+      if (raw) state = validateState(JSON.parse(raw));
+      lastStoredRaw = raw;
+    } catch (e) {
+      storageError = "Stored workout data could not be read. The original is preserved. Export a backup before repairing storage.";
+      syncStatus = "fail";
+    }
+  }
+  function refreshLocal() {
+    try {
+      var raw = localStorage.getItem(LS_STATE);
+      if (raw && raw !== lastStoredRaw) {
+        var latest = validateState(JSON.parse(raw));
+        mergeEntries(latest.entries); mergeNotes(latest.notes);
+        lastStoredRaw = raw;
+      }
+    } catch (e) {
+      storageError = "Stored workout data could not be read. The original has not been replaced.";
+      throw { kind: "storage" };
+    }
   }
   function saveLocal() {
-    state.updated = new Date().toISOString();
-    try { localStorage.setItem(LS_STATE, JSON.stringify(state)); } catch (e) {}
+    try {
+      refreshLocal(); validateState(state);
+      state.updated = new Date().toISOString();
+      var value = JSON.stringify(state);
+      localStorage.setItem(LS_STATE, value);
+      if (localStorage.getItem(LS_STATE) !== value) throw Error("Storage verification failed");
+      lastStoredRaw = value;
+      storageError = "";
+    } catch (e) {
+      if (!storageError) storageError = "Could not save on this device. Your draft is still open; export a backup or retry before closing.";
+      syncStatus = "fail";
+      throw { kind: "storage" };
+    }
   }
 
   function entryKey(e) {
     if (e.type === "sleep") return e.date + "|SLEEP";
+    if (e.watchId && typeof e.watch?.sessionId === "string" && e.watch.sessionId) return "session|" + JSON.stringify([e.date, e.exId, e.watch.sessionId]);
     if (e.watchId) return "watch|" + e.watchId;
     return "qr|" + qrKey(e);
+  }
+
+  function validDate(value) {
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+      !isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
+  }
+  function validateEntry(entry) {
+    if (!entry || ["sleep", "workout"].indexOf(entry.type) === -1 || !validDate(entry.date)) throw { kind: "schema" };
+    if (entry.type === "workout" && (typeof entry.exId !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(entry.exId))) throw { kind: "schema" };
+    if (entry.watchId !== undefined && (typeof entry.watchId !== "string" || !entry.watchId || entry.watchId.length > 10000)) throw { kind: "schema" };
+    var ranges = { sets: [0,1000], load: [0,10000], hrAvg: [0,300], hrDelta: [-300,300], pain: [0,10],
+      sleep: [0,100], workSec: [0,604800], tod: [0,1439], score: [0,100], totalMin: [0,1440], deepMin: [0,1440] };
+    Object.keys(ranges).forEach(function (key) {
+      var value = entry[key];
+      if (value != null && (typeof value !== "number" || !Number.isFinite(value) || value < ranges[key][0] || value > ranges[key][1])) throw { kind: "schema" };
+    });
+    if (entry.watch != null && (typeof entry.watch !== "object" || Array.isArray(entry.watch))) throw { kind: "schema" };
+    return entry;
+  }
+  function validateState(value) {
+    if (!value || !Array.isArray(value.entries) || !Array.isArray(value.notes) || value.entries.length > 100000 || value.notes.length > 10000) throw { kind: "schema" };
+    value.entries.forEach(validateEntry);
+    value.notes.forEach(function (note) {
+      if (!note || typeof note.ts !== "string" || note.ts.length > 100 || typeof note.text !== "string" || note.text.length > 100000 || typeof note.done !== "boolean") throw { kind: "schema" };
+    });
+    return value;
+  }
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, function (char) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]; });
   }
 
   // Match the full QR projection, including time and sets. A native watch ID is
@@ -457,7 +540,7 @@
   }
 
   function entryIndex(entries, incoming) {
-    var exact = entries.findIndex(function (e) { return entryKey(e) === entryKey(incoming); });
+    var exact = entries.findIndex(function (e) { return (e.watchId && e.watchId === incoming.watchId) || entryKey(e) === entryKey(incoming); });
     if (exact !== -1 || incoming.type === "sleep") return exact;
     return entries.findIndex(function (e) {
       return e.type === "workout" && !(e.watchId && incoming.watchId) && qrKey(e) === qrKey(incoming);
@@ -467,11 +550,23 @@
   function mergeEntry(existing, incoming) {
     // QR imports cannot strip native metadata. Missing arbitrary fields on either
     // side survive; newer native records may update the fields they do carry.
-    var nativeWins = existing.watchId && !incoming.watchId;
+    var oldWatch = existing.watch || {}, newWatch = incoming.watch || {};
+    var sameNative = existing.watchId && incoming.watchId && (existing.watchId === incoming.watchId || entryKey(existing) === entryKey(incoming));
+    var olderRevision = Number.isFinite(oldWatch.revision) && Number.isFinite(newWatch.revision) && oldWatch.revision > newWatch.revision;
+    var completedWins = existing.watch && oldWatch.partial !== true && newWatch.partial === true;
+    var moreProgress = oldWatch.partial === true && newWatch.partial === true &&
+      ((existing.sets || 0) > (incoming.sets || 0) || (existing.sets === incoming.sets && (existing.workSec || 0) > (incoming.workSec || 0)));
+    var nativeWins = existing.watchId && !incoming.watchId || sameNative && (olderRevision || completedWins || moreProgress);
     var merged = nativeWins ? Object.assign({}, incoming, existing) : Object.assign({}, existing, incoming);
     if (existing.watch || incoming.watch) merged.watch = nativeWins
       ? Object.assign({}, incoming.watch, existing.watch)
       : Object.assign({}, existing.watch, incoming.watch);
+    // Complete native watch rows omit partial; do not inherit the previous true flag.
+    if (sameNative && merged.watch && (nativeWins ? oldWatch : newWatch).partial !== true) {
+      if ((nativeWins ? oldWatch : newWatch).partial === false) merged.watch.partial = false;
+      else delete merged.watch.partial;
+    }
+    if (sameNative && incoming.watchId.indexOf("scratch-session:") === 0) merged.watchId = incoming.watchId;
     return merged;
   }
 
@@ -484,6 +579,7 @@
   }
 
   function mergeEntries(list) {
+    (list || []).forEach(validateEntry);
     var added = 0;
     (list || []).forEach(function (e) {
       var index = entryIndex(state.entries, e);
@@ -519,35 +615,45 @@
     return { "Authorization": "Bearer " + t, "Accept": "application/vnd.github+json" };
   }
 
+  // Cover headers and body, including fetch implementations that ignore abort.
+  function ghRequest(url, options, readBody, timeoutMs) {
+    var controller = new AbortController(), timer;
+    options.signal = controller.signal;
+    return Promise.race([
+      Promise.resolve().then(function () { return fetch(url, options); }).then(function (response) {
+        return readBody && response.ok ? response.json().then(function (body) { return { response: response, body: body }; }) : { response: response, body: null };
+      }),
+      new Promise(function (_, reject) { timer = setTimeout(function () { controller.abort(); reject({ kind: "timeout" }); }, timeoutMs || 15000); })
+    ]).finally(function () { clearTimeout(timer); });
+  }
   function ghFetchRemote(t) {
-    return fetch(GH_API + "?ref=" + GH_BRANCH, { headers: ghHeaders(t), cache: "no-store" })
-      .then(function (r) {
+    return ghRequest(GH_API + "?ref=" + GH_BRANCH, { headers: ghHeaders(t), cache: "no-store" }, true)
+      .then(function (result) {
+        var r = result.response, j = result.body;
         if (r.status === 404) return { sha: null, data: null };
         if (r.status === 401 || r.status === 403) throw { kind: "token" };
         if (!r.ok) throw { kind: "http", status: r.status };
-        return r.json().then(function (j) {
-          var data = null;
-          try { data = JSON.parse(b64decode(j.content)); } catch (e) { throw { kind: "schema" }; }
-          if (!data || !Array.isArray(data.entries) || !Array.isArray(data.notes) || !j.sha ||
-              data.entries.some(function (e) { return !e || ["sleep", "workout"].indexOf(e.type) === -1 || typeof e.date !== "string" || (e.watchId !== undefined && typeof e.watchId !== "string"); }) ||
-              data.notes.some(function (n) { return !n || typeof n.ts !== "string" || typeof n.text !== "string" || typeof n.done !== "boolean"; })) throw { kind: "schema" };
-          return { sha: j.sha, data: data };
-        });
+        if (!j || typeof j.sha !== "string" || !j.sha || typeof j.content !== "string" || j.content.length > 20000000) throw { kind: "schema" };
+        var data;
+        try { data = validateState(JSON.parse(b64decode(j.content))); } catch (e) { throw { kind: "schema" }; }
+        return { sha: j.sha, data: data };
       });
   }
 
   function ghPush(t, sha) {
+    validateState(state);
     var body = {
       message: "scratch companion: data sync",
       content: b64encode(JSON.stringify({ entries: state.entries, notes: state.notes, updated: state.updated }, null, 1)),
       branch: GH_BRANCH
     };
     if (sha) body.sha = sha;
-    return fetch(GH_API, {
+    return ghRequest(GH_API, {
       method: "PUT",
       headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders(t)),
       body: JSON.stringify(body)
-    }).then(function (r) {
+    }, false).then(function (result) {
+      var r = result.response;
       if (r.status === 409 || r.status === 422) throw { kind: "conflict" };
       if (r.status === 401 || r.status === 403) throw { kind: "token" };
       if (!r.ok) throw { kind: "http", status: r.status };
@@ -572,17 +678,22 @@
     if (syncing) return Promise.resolve();
     syncing = true;
     syncStatus = "busy"; renderSaveState();
-    return ghFetchRemote(t)
+    var sent = null;
+    return Promise.resolve().then(function () { refreshLocal(); return ghFetchRemote(t); })
       .then(function (rem) {
         if (rem.data) { mergeEntries(rem.data.entries); mergeNotes(rem.data.notes); saveLocal(); }
+        sent = JSON.parse(JSON.stringify(state));
         if (sameData(rem.data)) return; // nothing new to write
         return ghPush(t, rem.sha);
       })
       .then(function () {
-        try { localStorage.setItem(LS_SYNC, new Date().toISOString()); } catch (e) {}
-        syncStatus = "ok";
+        refreshLocal();
+        syncStatus = sameData(sent) ? "ok" : "local";
+        if (syncStatus === "ok") {
+          try { localStorage.setItem(LS_SYNC, new Date().toISOString()); } catch (e) { showMsg(msg, "Vault sync succeeded, but this device could not save the sync timestamp.", "warn"); }
+        }
         syncing = false;
-        if (!quiet) showMsg(msg, "Synced to the vault.", "ok");
+        if (!quiet) showMsg(msg, syncStatus === "ok" ? "Synced to the vault." : "Earlier data synced. Newer changes are still on this device; sync again.", syncStatus === "ok" ? "ok" : "warn");
         renderAll();
       })
       .catch(function (err) {
@@ -590,20 +701,27 @@
         if (err && err.kind === "conflict" && !isRetry) return syncNow(quiet, true);
         syncStatus = "fail";
         renderSaveState();
-        if (err && err.kind === "token") {
+        if (err && err.kind === "storage") {
+          showMsg(msg, storageError, "err");
+        } else if (err && err.kind === "schema") {
+          showMsg(msg, "Workout data failed validation. No vault file was replaced.", "err");
+        } else if (err && err.kind === "token") {
           showMsg(msg, "GitHub said the token isn't valid (expired or wrong permissions). Make a new one and save it above.", "err");
         } else if (!quiet) {
-          showMsg(msg, "Couldn't reach GitHub — your data is safe on this phone; it'll sync next time.", "warn");
+          showMsg(msg, "Sync was not confirmed. Your open data is retained; retry sync.", "warn");
         }
       });
   }
 
   // Save locally, re-render, and sync in the background.
   function persist(okEl, okText) {
-    saveLocal();
+    try { saveLocal(); }
+    catch (e) { renderAll(); showMsg(okEl, storageError, "err"); return false; }
+    syncStatus = "local";
     renderAll();
     showMsg(okEl, okText, "ok");
     syncNow(true);
+    return true;
   }
 
   function showMsg(el, text, cls) {
@@ -619,7 +737,7 @@
     var y = now.getFullYear();
     var iso = y + "-" + mmdd.slice(0, 2) + "-" + mmdd.slice(2);
     var d = new Date(iso + "T00:00:00");
-    if (isNaN(d.getTime())) return null;
+    if (isNaN(d.getTime()) || !validDate(iso)) return null;
     if (d.getTime() > now.getTime() + 86400000) iso = (y - 1) + iso.slice(4);
     return iso;
   }
@@ -627,7 +745,7 @@
   function num(v) {
     if (v === "" || v === undefined) return null;
     var n = Number(v);
-    return isNaN(n) ? null : n;
+    return Number.isFinite(n) ? n : null;
   }
 
   function parsePaste(text) {
@@ -655,6 +773,9 @@
           });
         }
       });
+    });
+    out.entries = out.entries.filter(function (entry) {
+      try { validateEntry(entry); return true; } catch (e) { out.errors.push("A record contained invalid workout or sleep values."); return false; }
     });
     return out;
   }
@@ -702,8 +823,8 @@
         var span = end - start;
         if (span > 0) sess = " &middot; " + span + "m";
       }
-      lab.innerHTML = "<span>" + names[d.getDay()] + " " + date.slice(5) + sess + "</span>" +
-        (slp ? '<span class="slp">sleep ' + fmtMin(slp.totalMin) + " / " + (slp.score == null ? "--" : slp.score) + "</span>" : "");
+      lab.innerHTML = "<span>" + names[d.getDay()] + " " + escapeHTML(date.slice(5)) + sess + "</span>" +
+        (slp ? '<span class="slp">sleep ' + fmtMin(slp.totalMin) + " / " + escapeHTML(slp.score == null ? "--" : slp.score) + "</span>" : "");
       group.appendChild(lab);
 
       byDate[date].filter(function (e) { return e.type === "workout"; }).forEach(function (e) {
@@ -721,15 +842,15 @@
         var right = document.createElement("div");
         right.className = "exdata";
         var bits = [];
-        if (e.sets != null) bits.push(e.sets + " sets");
-        if (e.load) bits.push('<span class="load">' + e.load + " lb</span>");
+        if (e.sets != null) bits.push(escapeHTML(e.sets) + " sets");
+        if (e.load) bits.push('<span class="load">' + escapeHTML(e.load) + " lb</span>");
         if (e.hrAvg) {
           var d2 = "";
           if (e.hrDelta != null && e.hrDelta !== 0) {
             d2 = ' <span class="' + (e.hrDelta > 0 ? "up" : "dn") + '">' +
-              (e.hrDelta > 0 ? "+" : "") + e.hrDelta + "</span>";
+              (e.hrDelta > 0 ? "+" : "") + escapeHTML(e.hrDelta) + "</span>";
           }
-          bits.push("HR " + e.hrAvg + d2);
+          bits.push("HR " + escapeHTML(e.hrAvg) + d2);
         }
         right.innerHTML = bits.join(" &middot; ") || "&mdash;";
         row.appendChild(left);
@@ -790,7 +911,7 @@
         '" fill="' + (last ? "#f2b63c" : "#0b0f14") + '" stroke="#f2b63c" stroke-width="2"/>';
     }).join("");
     var labels = pts.map(function (p, i) {
-      return '<text x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" fill="#8d97a6" font-size="10" font-family="IBM Plex Mono,monospace">' + p.date.slice(5) + "</text>";
+      return '<text x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" fill="#8d97a6" font-size="10" font-family="IBM Plex Mono,monospace">' + escapeHTML(p.date.slice(5)) + "</text>";
     }).join("");
 
     $("loadchart").innerHTML =
@@ -805,10 +926,10 @@
     var hr = pts.filter(function (p) { return p.hrAvg; });
     var lastHr = hr.length ? hr[hr.length - 1] : null;
     $("loadstats").innerHTML =
-      "<span>last <b>" + lastP.load + " lb</b></span>" +
+      "<span>last <b>" + escapeHTML(lastP.load) + " lb</b></span>" +
       "<span>best <b>" + best + " lb</b></span>" +
-      (lastHr ? "<span>HR <b>" + lastHr.hrAvg + "</b>" +
-        (lastHr.hrDelta != null && lastHr.hrDelta !== 0 ? " (" + (lastHr.hrDelta > 0 ? "+" : "") + lastHr.hrDelta + " vs usual)" : "") + "</span>" : "");
+      (lastHr ? "<span>HR <b>" + escapeHTML(lastHr.hrAvg) + "</b>" +
+        (lastHr.hrDelta != null && lastHr.hrDelta !== 0 ? " (" + (lastHr.hrDelta > 0 ? "+" : "") + escapeHTML(lastHr.hrDelta) + " vs usual)" : "") + "</span>" : "");
   }
 
   function renderSleep() {
@@ -823,8 +944,8 @@
       var bx = PAD + i * ((W - PAD * 2) / sleeps.length);
       var color = s.totalMin >= 420 ? "#4caf50" : s.totalMin >= 360 ? "#ffc107" : "#ef5350";
       return '<rect x="' + bx.toFixed(1) + '" y="' + (H - 30 - h).toFixed(1) + '" width="' + bw + '" height="' + h.toFixed(1) + '" rx="3" fill="' + color + '" opacity="0.85"/>' +
-        '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 16) + '" text-anchor="middle" fill="#8d97a6" font-size="9" font-family="IBM Plex Mono,monospace">' + s.date.slice(5) + "</text>" +
-        (s.score != null ? '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 34 - h).toFixed(1) + '" text-anchor="middle" fill="#e9eef5" font-size="10" font-family="IBM Plex Mono,monospace">' + s.score + "</text>" : "");
+        '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 16) + '" text-anchor="middle" fill="#8d97a6" font-size="9" font-family="IBM Plex Mono,monospace">' + escapeHTML(s.date.slice(5)) + "</text>" +
+        (s.score != null ? '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (H - 34 - h).toFixed(1) + '" text-anchor="middle" fill="#e9eef5" font-size="10" font-family="IBM Plex Mono,monospace">' + escapeHTML(s.score) + "</text>" : "");
     }).join("");
     var goal = H - 30 - (420 / maxMin) * (H - 50);
     $("sleepchart").innerHTML =
@@ -843,7 +964,7 @@
       div.className = "noteitem" + (n.done ? " notedone" : "");
       var t = document.createElement("div");
       t.className = "notetime";
-      t.textContent = n.ts.slice(0, 10) + (n.done ? " - handled by Claude" : " - waiting for Claude");
+      t.textContent = n.ts.slice(0, 10) + (n.done ? " - marked handled" : " - saved request, not yet reviewed");
       var body = document.createElement("div");
       body.className = "notetext";
       body.textContent = n.text;
@@ -858,7 +979,11 @@
     var el = $("savestate");
     var dot = el.querySelector(".dot");
     var txt = $("savestatetext");
-    if (!getToken()) {
+    if (storageError) {
+      dot.className = "dot r"; txt.textContent = storageError;
+    } else if (syncStatus === "local") {
+      dot.className = "dot a"; txt.textContent = "Changes on this device are waiting to sync.";
+    } else if (!getToken()) {
       dot.className = "dot a";
       txt.textContent = "On this phone only — add your GitHub token above to sync to the vault";
     } else if (syncStatus === "busy") {
@@ -866,7 +991,7 @@
       txt.textContent = "Syncing to the vault...";
     } else if (syncStatus === "fail") {
       dot.className = "dot r";
-      txt.textContent = "Sync failed — data safe on this phone; will retry on next save";
+      txt.textContent = "Sync was not confirmed. Retry when connected.";
     } else {
       dot.className = "dot g";
       var last = "";
@@ -970,6 +1095,13 @@
     }
     pending = freshEntries(res.entries);
     var skipped = res.entries.length - pending.length;
+    if (pending.length === 0 && storageError) {
+      pending = res.entries;
+      $("savebtn").hidden = false;
+      $("savebtn").textContent = "Retry saving";
+      showMsg(msg, storageError, "err");
+      return;
+    }
     if (pending.length === 0) {
       showMsg(msg, "Scanned " + res.entries.length + " entries — all already saved.", "ok");
       $("savebtn").hidden = true;
@@ -987,18 +1119,18 @@
   $("savebtn").addEventListener("click", function () {
     if (pending.length === 0) return;
     mergeEntries(pending);
-    pending = [];
-    $("savebtn").hidden = true;
-    $("pastebox").value = "";
-    persist($("parsemsg"), "Saved.");
+    if (persist($("parsemsg"), "Saved.")) {
+      pending = []; $("savebtn").hidden = true; $("pastebox").value = "";
+    }
   });
 
   $("notebtn").addEventListener("click", function () {
     var text = $("notebox").value.trim();
     if (!text) return;
-    state.notes.push({ ts: new Date().toISOString(), text: text, done: false });
-    $("notebox").value = "";
-    persist($("notemsg"), "Request logged.");
+    var note = { ts: new Date().toISOString(), text: text, done: false };
+    state.notes.push(note);
+    if (persist($("notemsg"), "Request logged.")) $("notebox").value = "";
+    else { state.notes = state.notes.filter(function (entry) { return entry !== note; }); renderAll(); }
   });
 
   $("tokensave").addEventListener("click", function () {
@@ -1020,19 +1152,70 @@
     try { h = decodeURIComponent(location.hash || ""); } catch (e) { h = location.hash || ""; }
     var i = h.indexOf("SCRATCH1|");
     if (i === -1) return;
+    var morePanel = $("more-view"); if (morePanel) morePanel.open = true;
     var importPanel = $("qr-import"); if (importPanel) importPanel.open = true;
-    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    $("pastebox").value = h.slice(i);
     var res = parsePaste(h.slice(i));
-    if (res.entries.length === 0) return;
+    if (res.entries.length === 0) { showMsg($("parsemsg"), res.errors[0] || "No valid records found in this QR.", "err"); return; }
     var fresh = freshEntries(res.entries);
     var more = " More pages on the watch? Tap NEXT there and scan again.";
+    if (fresh.length === 0 && storageError) { persist($("parsemsg"), "QR entries saved on this device."); return; }
     if (fresh.length === 0) {
       showMsg($("parsemsg"), "Scanned QR page " + res.pages.join(", ") + " — everything already saved." + more, "ok");
       return;
     }
     mergeEntries(fresh);
-    persist($("parsemsg"), "Imported " + fresh.length + " entries from the QR." + more);
+    if (persist($("parsemsg"), "Imported " + fresh.length + " entries from the QR." + more)) {
+      $("pastebox").value = "";
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    }
   }
+
+  function backupPayload() {
+    var saved = {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key && key.indexOf("scratch-") === 0 && !/token|secret|credential/i.test(key)) saved[key] = localStorage.getItem(key);
+    }
+    return { schema: 1, exportedAt: new Date().toISOString(), storage: saved,
+      openWorkoutState: state, pendingQR: pending, noteDraft: $("notebox").value, qrDraft: $("pastebox").value };
+  }
+  function downloadBackup() {
+    var url;
+    try {
+      url = URL.createObjectURL(new Blob([JSON.stringify(backupPayload(), null, 2)], {type:"application/json"}));
+      var link = document.createElement("a");
+      link.href = url; link.download = "scratch-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      showMsg($("syncmsg"), "Backup download requested. Check your Downloads before repairing storage.", "ok");
+    } catch (e) {
+      if (url) URL.revokeObjectURL(url);
+      showMsg($("syncmsg"), "Could not create the backup. Keep this page open and check browser storage access.", "err");
+    }
+  }
+  function disconnectToken() {
+    try {
+      localStorage.removeItem(LS_TOKEN);
+      if (localStorage.getItem(LS_TOKEN)) throw Error("Token remains stored");
+      $("tokenbox").value = ""; $("tokenbox").placeholder = "Paste a token to connect";
+      syncStatus = "local"; renderAll();
+      showMsg($("syncmsg"), "Token removed from this browser. Local records are retained. Requests already sent may still finish; revoke the token in GitHub to invalidate it everywhere.", "ok");
+    } catch (e) { showMsg($("syncmsg"), "Could not remove the token. Check browser storage access and retry.", "err"); }
+  }
+  if ($("backup-download")) $("backup-download").addEventListener("click", downloadBackup);
+  if ($("token-disconnect")) $("token-disconnect").addEventListener("click", disconnectToken);
+  window.addEventListener("storage", function (event) {
+    if (event.key === LS_TOKEN) { syncStatus = "local"; renderAll(); return; }
+    if (event.key !== LS_STATE) return;
+    try {
+      refreshLocal();
+      var saved = localStorage.getItem(LS_STATE);
+      if (saved && !sameData(validateState(JSON.parse(saved)))) saveLocal();
+      syncStatus = "local";
+    } catch (e) { syncStatus = "fail"; }
+    renderAll();
+  });
 
   // ---------- boot ----------
   loadState();
@@ -1042,7 +1225,7 @@
       syncWorkouts: function () { return syncNow(false); },
       getWorkoutStatus: function () {
         var last = null; try { last = localStorage.getItem(LS_SYNC); } catch (e) {}
-        return { status: syncStatus, lastSync: last };
+        return { status: syncStatus, lastSync: last, error: storageError };
       }
     });
   }

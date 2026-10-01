@@ -24,21 +24,27 @@
     const analytics = journal && root.ScratchAnalyticsView ? root.ScratchAnalyticsView.init({document:doc,store:journal,getWeights:()=>tracker.snapshot().data,getHealth:()=>health?health.snapshot().data:{days:[]},getEntries:options.getEntries}) : null;
     if (analytics && health) health.subscribe(()=>analytics.refresh());
     const bike = root.ScratchBikeView ? root.ScratchBikeView.init({document:doc,getEntries:options.getEntries}) : null;
+    const todayView = root.ScratchToday ? root.ScratchToday.init({document:doc,onChange:()=>renderAccountability()}) : null;
     function renderAccountability() {
       if (!journal || !root.ScratchAccountability) return;
-      const plan = root.ScratchAccountability.week(options.getEntries(), journal.snapshot().data.settings, M.localDate());
-      text('accountability-count', plan.configured ? plan.completed + ' / ' + plan.target + ' days' : 'Set your workout days');
+      const snapshot=journal.snapshot().data;
+      let restDays=snapshot.days;
+      if(todayView){try{restDays=[...restDays,...Object.entries(todayView.store.read()).filter(([,r])=>r.state==='rest').map(([date])=>({date,restDay:true}))];}catch(error){/* Today shows its own persistence error. */}}
+      const plan = root.ScratchAccountability.week(options.getEntries(), snapshot.settings, M.localDate(),restDays);
+      text('accountability-count', plan.configured ? plan.startedDays + ' / ' + plan.target + ' planned days started' : 'Set your workout days');
       text('accountability-summary', plan.configured ?
-        (plan.target===0 ? 'Your chosen days begin next week.' : plan.completed >= plan.target ? 'Weekly target reached.' : (plan.target - plan.completed) + ' workout day' + (plan.target - plan.completed === 1 ? '' : 's') + ' to reach your target.') :
-        'Choose the days you plan to train. A day counts after Scratch syncs at least one finished exercise or ride.');
+        plan.completed+' full sessions confirmed. '+plan.extraDays+' extra activity days. '+(plan.target===0?'No commitments in this week.':'One exercise is a start; a full session needs its saved routine.') :
+        'Choose the days you intend to train. Missing records stay unknown.');
       const holder = $('accountability-days'); holder.replaceChildren();
+      const labels={complete:'Session complete',recorded:'Exercise saved',started:'Started',rest:'Rest chosen',open:'Open',unknown:'No record yet',today:'Today',upcoming:'Planned'};
       plan.days.forEach(day => {
         const cell = doc.createElement('div'); cell.className = 'accountability-day'; cell.dataset.state = day.status;
-        cell.textContent = day.name + ' ' + day.date.slice(5) + ' · ' + (day.completed ? 'Done' : day.planned ? ({missed:'Missed',today:'Today',upcoming:'Planned'}[day.status]) : 'Open');
+        cell.textContent = day.name + ' ' + day.date.slice(5) + ' · ' + labels[day.status];
         holder.appendChild(cell);
       });
-      text('accountability-missed', plan.missed.length ? 'Missed: ' + plan.missed.map(day => day.name + ' ' + day.date.slice(5)).join(', ') : (plan.configured ? 'No missed planned days this week.' : ''));
+      text('accountability-missed', plan.unknown.length ? 'No record yet: ' + plan.unknown.map(day => day.name + ' ' + day.date.slice(5)).join(', ') + '. Sync or record what happened; this is not a missed-workout judgment.' : 'Activity is based on available records. QR-only completion is unknown.');
     }
+
     function renderGoals() {
       if (!journal || !root.ScratchPerformanceGoals) return;
       const goals=journal.snapshot().data.settings.performanceGoals || [];
@@ -202,17 +208,24 @@
     $("dashboard-sync").addEventListener("click",syncAll);
     if (journal) {
       const checks = [...doc.querySelectorAll('input[name="training-day"]')];
-      const savedPlans=journal.snapshot().data.settings.trainingPlans || [];
-      (savedPlans.length?savedPlans[savedPlans.length-1].weekdays:[]).forEach(day => { const box=checks.find(item=>Number(item.value)===day); if(box)box.checked=true; });
+      function loadPlanControls(){
+        const plans=journal.snapshot().data.settings.trainingPlans||[],date=M.localDate();
+        const active=plans.filter(plan=>plan.from<=date).at(-1);
+        checks.forEach(box=>{box.checked=!!active&&active.weekdays.includes(Number(box.value));});
+        const next=plans.find(plan=>plan.from>date);
+        $('accountability-resume').value=active&&!active.weekdays.length&&next?next.from:'';
+      }
+      loadPlanControls();
+      checks.forEach(box=>box.addEventListener('change',()=>{if(checks.some(item=>item.checked))$('accountability-resume').value='';}));
       $('accountability-form').addEventListener('submit', async event => {
         event.preventDefault();
         const selected = checks.filter(item=>item.checked).map(item=>Number(item.value)).sort((a,b)=>a-b);
         try {
-          if (!selected.length) throw Error('Choose at least one workout day.');
+
           const old=journal.snapshot().data.settings.trainingPlans || [],today=M.localDate();
-          journal.saveSettings({trainingPlans:[...old.filter(plan=>plan.from<today),{from:today,weekdays:selected}]});
-          text('accountability-message','Weekly plan saved on this phone.'); $('accountability-message').hidden=false;
-          renderAccountability(); await journal.sync(); renderAccountability();
+          journal.saveSettings({trainingPlans:root.ScratchAccountability.changePlan(old,selected,today,$('accountability-resume').value)});
+          text('accountability-message',selected.length?'Weekly plan saved on this phone.':'Commitments paused from today. Saved on this phone.'); $('accountability-message').hidden=false;
+          loadPlanControls(); renderAccountability(); await journal.sync(); renderAccountability();
         } catch(error) {text('accountability-message',error.message||'Could not save the plan.'); $('accountability-message').hidden=false;}
       });
       $('performance-kind').addEventListener('change',()=>{

@@ -18,7 +18,7 @@ Sync compatibility regressions (Node.js built-in test runner):
 node --test tests/sync.test.mjs
 ```
 
-The visible `Dashboard 1.3.0` label identifies the dashboard release, retaining native-watch sync compatibility. Close and reopen older Safari/home-screen copies before syncing. Updating does not clear local data or tokens.
+The visible `Dashboard 1.8.0` label identifies the dashboard release, retaining native-watch sync compatibility. Close and reopen older Safari/home-screen copies before syncing. Updating does not clear local data or tokens.
 
 ## Dashboard and body weight
 
@@ -128,3 +128,53 @@ phone copy cannot silently overwrite a newer routine. Existing exercise definiti
 and the watch's recovery-phase filter remain in force. Saving on the phone is not a
 watch install: tap **Sync to vault** in Scratch to download the revision. The phone
 routine and the dashboard commitment are separate choices.
+
+## Reliability and Today (1.8.0)
+
+The default view now offers one device-local next step, an optional smaller step,
+a ten-minute start timer, self-reported completion, a rest choice, and restart.
+Today choices are stored only on this browser/device; they do not create workout
+records, sync to GitHub, or appear in Day Coach. The timer uses a saved deadline
+across reloads; it is an on-screen cue, not a background notification.
+
+History, analytics, routine controls and connection tools remain under **History,
+insights & settings**. The QR hash flow opens this section automatically.
+
+Weekly tracking distinguishes unknown records, started/partial work, a saved native
+exercise, and a completed historical session. Only matching historical schedules
+and sufficient completed native sets can confirm a full session. QR-only records
+cannot certify completion. Off-plan activity is counted separately. Rest choices
+never hide existing watch activity. Clear every weekday to pause from today, with
+an optional future date to restore the last active weekdays. Saving a plan replaces
+future scheduled plan changes; past dates are retained. Old dashboard versions
+may reject a paused plan rather than overwrite it: close all old dashboard copies
+and reopen the 1.8.0 release before editing.
+
+Legacy workout import/sync now validates dates and numeric fields, escapes displayed
+values, preserves corrupt storage for recovery, and exposes persistence failures.
+Native stable-session migrations and partial-to-complete updates retain identity.
+Request deadlines cover response bodies. Edits during upload remain visibly pending.
+Cross-tab storage merges are best-effort, not an atomic multi-device database.
+**Download local backup** exports Scratch browser data and pending workout drafts,
+excluding token keys. This is a recovery export; there is no full backup restore UI.
+**Disconnect this device** forgets the token without deleting records. Keep backups
+private. The QR dependency is vendored from the verified jsqr 1.4.0 npm archive, with its license and pinned subresource integrity. The previous CDN URL returned 404.
+
+Pages deployment runs regression tests first. The service worker caches a release
+shell and activates after old clients close; close all Scratch tabs/home-screen
+copies and reopen to receive an update. GitHub requests remain uncached. Initial
+installation and external fonts require network access; the QR scanner script is
+now part of the offline shell. Camera permissions remain browser-dependent.
+
+Verification commands:
+
+```sh
+node --test tests/*.test.mjs
+node --test --experimental-test-coverage tests/accountability.test.mjs tests/today.test.mjs tests/service-worker.test.mjs
+node tests/browser-smoke.cjs
+```
+
+The browser smoke script requires Playwright and system Chrome, uses only synthetic
+local data and blocks external requests. Set PLAYWRIGHT_MODULE to an installed
+package path when it is not in normal Node resolution, and optionally SCRATCH_QA_DIR
+for screenshots. It starts and stops its own loopback-only server.

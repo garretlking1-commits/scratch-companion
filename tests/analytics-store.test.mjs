@@ -360,3 +360,7 @@ test("habit tags retain identity across rename, full-form resave, explicit retag
   legacy.days[0].habitLabel = "x".repeat(61);
   assert.throws(() => load().validate(legacy));
 });
+
+test('an empty dated weekday plan pauses commitments and survives journal validation',()=>{
+ const api=load();const doc=api.defaults();doc.settings.trainingPlans=[{from:'2026-09-30',weekdays:[]}];assert.doesNotThrow(()=>api.validate(doc));
+});

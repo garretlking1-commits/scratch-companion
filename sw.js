@@ -1,37 +1,14 @@
-// Network-first cache: the app always tries the live version, and falls back
-// to the last cached copy when offline (e.g. at the gym with no signal).
-// GitHub API calls are never cached — sync must always be live.
-var CACHE = "scratch-v9-dashboard-1.7.0";
-
-self.addEventListener("install", function (e) {
-  e.waitUntil(
-    caches.open(CACHE).then(function (c) {
-      return c.addAll(["./", "./index.html", "./manifest.webmanifest", "./weights.js", "./weight-sync.js", "./health-schema.js", "./health-data.js", "./health-view.js", "./analytics-math.js", "./analytics-store.js", "./analytics-view.js", "./bike-view.js", "./accountability.js", "./performance-goals.js", "./routine-control.js", "./dashboard.js", "./dashboard.css"]);
-    }).then(function () { return self.skipWaiting(); })
-  );
-});
-
-self.addEventListener("activate", function (e) {
-  e.waitUntil(self.clients.claim());
-});
-
-self.addEventListener("fetch", function (e) {
-  if (e.request.method !== "GET") return;
-  var url = new URL(e.request.url);
-  if (url.hostname === "api.github.com") return;
-  e.respondWith(
-    fetch(e.request)
-      .then(function (r) {
-        if (r.ok && (url.origin === location.origin || url.hostname.indexOf("fonts.") === 0 || url.hostname === "cdnjs.cloudflare.com" || url.hostname === "fonts.gstatic.com" || url.hostname === "fonts.googleapis.com")) {
-          var copy = r.clone();
-          caches.open(CACHE).then(function (c) { c.put(e.request, copy); }).catch(function () {});
-        }
-        return r;
-      })
-      .catch(function () {
-        return caches.open(CACHE).then(function (cache) { return cache.match(e.request); }).then(function (hit) {
-          return hit || Response.error();
-        });
-      })
-  );
+// One cached shell per release. Activate only after old clients close.
+var CACHE='scratch-v10-dashboard-1.8.0';
+var ASSETS=['./','./index.html','./manifest.webmanifest','./weights.js','./weight-sync.js','./health-schema.js','./health-data.js','./health-view.js','./analytics-math.js','./analytics-store.js','./analytics-view.js','./bike-view.js','./accountability.js','./performance-goals.js','./routine-control.js','./today.js','./vendor/jsQR-1.4.0.js','./dashboard.js','./dashboard.css','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
+self.addEventListener('install',function(event){event.waitUntil(caches.open(CACHE).then(function(cache){return cache.addAll(ASSETS);}));});
+self.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(key){return key.indexOf('scratch-')===0&&key!==CACHE;}).map(function(key){return caches.delete(key);}));}));});
+self.addEventListener('fetch',function(event){
+ if(event.request.method!=='GET')return;
+ var url=new URL(event.request.url),scope=new URL(self.registration.scope);
+ if(url.origin!==scope.origin||url.pathname.indexOf(scope.pathname)!==0)return;
+ // Ignore navigation query strings; each active worker owns a coherent shell.
+ var path='./'+url.pathname.slice(scope.pathname.length);
+ if(ASSETS.indexOf(path)===-1)return;
+ event.respondWith(caches.open(CACHE).then(function(cache){return cache.match(new URL(path,scope).href);}).then(function(hit){return hit||fetch(event.request);}));
 });

@@ -50,3 +50,10 @@ test('GitHub conflict does not overwrite another routine update',async()=>{
   await control.load();await assert.rejects(control.save(1,[]),/changed elsewhere/);
   assert.equal(calls.length,1);
 });
+
+test('routine deadline includes a stalled response body',async()=>{
+  const {api}=setup();
+  const control=api.create({timeoutMs:10,getToken:()=> 'fixture',fetch:async()=>({ok:true,status:200,json:()=>new Promise(()=>{})})});
+  const result=await Promise.race([control.load().then(()=> 'success',()=> 'rejected'),new Promise(resolve=>setTimeout(()=>resolve('hung'),70))]);
+  assert.equal(result,'rejected');
+});

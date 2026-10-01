@@ -114,7 +114,7 @@
       let prior='';
       v.trainingPlans.forEach(plan=>{
         keys(plan,["from","weekdays"]);date(plan.from);
-        if (plan.from<=prior || !Array.isArray(plan.weekdays) || plan.weekdays.length<1 || plan.weekdays.length>7 ||
+        if (plan.from<=prior || !Array.isArray(plan.weekdays) || plan.weekdays.length>7 ||
           new Set(plan.weekdays).size!==plan.weekdays.length ||
           plan.weekdays.some(day=>!Number.isInteger(day)||day<0||day>6))
           throw Error("Choose valid, unique training weekdays.");
